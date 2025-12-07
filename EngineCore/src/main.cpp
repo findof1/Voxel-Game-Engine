@@ -1,0 +1,60 @@
+#include <vulkan/vulkan.h>
+#include <GLFW/glfw3.h>
+#include <iostream>
+
+int main()
+{
+  if (!glfwInit())
+  {
+    std::cerr << "Failed to initialize GLFW\n";
+    return -1;
+  }
+
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+  GLFWwindow *window = glfwCreateWindow(800, 600, "Vulkan Window", nullptr, nullptr);
+  if (!window)
+  {
+    std::cerr << "Failed to create GLFW window\n";
+    glfwTerminate();
+    return -1;
+  }
+
+  VkInstance instance;
+  VkApplicationInfo appInfo{};
+  appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+  appInfo.pApplicationName = "VulkanApp";
+  appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+  appInfo.pEngineName = "NoEngine";
+  appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+  appInfo.apiVersion = VK_API_VERSION_1_0;
+
+  VkInstanceCreateInfo createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+  createInfo.pApplicationInfo = &appInfo;
+
+  uint32_t glfwExtensionCount = 0;
+  const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+  createInfo.enabledExtensionCount = glfwExtensionCount;
+  createInfo.ppEnabledExtensionNames = glfwExtensions;
+  createInfo.enabledLayerCount = 0;
+
+  if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+  {
+    std::cerr << "Failed to create Vulkan instance\n";
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    return -1;
+  }
+
+  while (!glfwWindowShouldClose(window))
+  {
+    glfwPollEvents();
+  }
+
+  vkDestroyInstance(instance, nullptr);
+  glfwDestroyWindow(window);
+  glfwTerminate();
+
+  return 0;
+}
