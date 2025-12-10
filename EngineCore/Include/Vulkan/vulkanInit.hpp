@@ -9,3 +9,5 @@ void closeWindow(GLFWwindow *window);
 
 VkInstance createInstance(GLFWwindow *window);
 void destroyInstance(VkInstance instance);
+
+bool checkValidationLayerSupport();

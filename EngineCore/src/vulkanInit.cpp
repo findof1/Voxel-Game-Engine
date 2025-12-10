@@ -78,3 +78,7 @@ void destroyInstance(VkInstance instance)
 {
   vkDestroyInstance(instance, nullptr);
 }
+
+bool checkValidationLayerSupport()
+{
+}
