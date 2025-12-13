@@ -1,0 +1,27 @@
+#pragma once
+#include <iostream>
+#include <vector>
+
+#include <vulkan/vulkan.h>
+#include <GLFW/glfw3.h>
+#include "vulkanSwapchain.hpp"
+
+VkPipeline createGraphicsPipeline(VkDevice device);
+void destroyPipeline(VkPipeline pipeline, VkDevice device);
+
+void bindGraphicsPipeline(VkCommandBuffer commandBuffer, VkPipeline pipeline);
+
+VkPipelineLayout createPipelineLayout(VkDevice device);
+void destroyPipelineLayout(VkPipelineLayout layout, VkDevice device);
+
+VkPipelineShaderStageCreateInfo createShaderStageInfo(VkShaderModule shaderModule, VkShaderStageFlagBits stage);
+VkPipelineDynamicStateCreateInfo createDynamicStateInfo();
+VkPipelineVertexInputStateCreateInfo createVertexInputStateInfo();
+VkPipelineInputAssemblyStateCreateInfo createInputAssembleInfo(VkPrimitiveTopology topologyType = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+VkPipelineViewportStateCreateInfo createViewportStateInfo(SwapChainObjects &swapChainObjects);                      // use swapchian to make viewport fullscreen
+VkPipelineViewportStateCreateInfo createViewportStateInfo(VkViewport viewport, VkRect2D scissor);                   // used for viewports of any scale
+VkPipelineRasterizationStateCreateInfo createRasterizationStateInfo(VkPolygonMode drawMode = VK_POLYGON_MODE_FILL); // note: any mode other than fill required a special gpu feature to be enabled
+VkPipelineMultisampleStateCreateInfo createMultisampleStateInfo();                                                  // default to disabled for now
+// eventually, put this here: VkPipelineDepthStencilStateCreateInfo createDepthStencilStateInfo();
+VkPipelineColorBlendStateCreateInfo createColorBlendStateInfo(VkBool32 enableBlend);      // note: calls createColorBlendAttachmentInfo
+VkPipelineColorBlendAttachmentState createColorBlendAttachmentInfo(VkBool32 enableBlend); // have false for now until we add semi-transparent objects
