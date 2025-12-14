@@ -65,9 +65,11 @@ VkInstance createInstance(GLFWwindow *window)
 
   if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
   {
-    std::cerr << "Failed to create Vulkan instance\n";
+    std::cerr << "Failed to create Vulkan instance" << std::endl;
     glfwDestroyWindow(window);
     glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
     exit(EXIT_FAILURE);
   }
 

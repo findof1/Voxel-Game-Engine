@@ -26,6 +26,8 @@ struct SwapChainObjects
 SwapChainObjects createSwapChain(VkSurfaceKHR surface, VkDevice device, VkPhysicalDevice physicalDevice);
 void destroySwapChain(VkSwapchainKHR swapChain, VkDevice device);
 
+uint32_t acquireNextImageIndex(VkSemaphore imageAvailableSemaphore, VkSwapchainKHR swapChain, VkDevice device);
+
 void createImageViews(SwapChainObjects &swapChainObjects);
 void destroyImageViews(std::vector<VkImageView> &swapChainImageViews, VkDevice device);
 

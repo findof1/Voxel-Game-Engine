@@ -9,3 +9,4 @@ VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkPhysicalDevice 
 
 void beginCommandBuffer(VkCommandBuffer commandBuffer);
 void endCommandBuffer(VkCommandBuffer commandBuffer);
+void resetCommandBuffer(VkCommandBuffer commandBuffer);
