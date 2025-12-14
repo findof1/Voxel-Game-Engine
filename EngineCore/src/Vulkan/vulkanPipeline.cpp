@@ -44,12 +44,15 @@ VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass 
 
 void destroyPipeline(VkPipeline pipeline, VkDevice device)
 {
-  vkDestroyPipeline(device, pipeline, nullptr);
+  if (pipeline != VK_NULL_HANDLE)
+  {
+    vkDestroyPipeline(device, pipeline, nullptr);
+  }
 }
 
 void bindGraphicsPipeline(VkCommandBuffer commandBuffer, VkPipeline pipeline)
 {
-  // add later
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
 VkPipelineLayout createPipelineLayout(VkDevice device)
@@ -77,7 +80,10 @@ VkPipelineLayout createPipelineLayout(VkDevice device)
 
 void destroyPipelineLayout(VkPipelineLayout pipelineLayout, VkDevice device)
 {
-  vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+  if (pipelineLayout != VK_NULL_HANDLE)
+  {
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+  }
 }
 
 VkShaderModule createShaderModule(VkDevice device, const std::vector<char> &code)
@@ -102,7 +108,10 @@ VkShaderModule createShaderModule(VkDevice device, const std::vector<char> &code
 
 void destroyShaderModule(VkShaderModule shaderModule, VkDevice device)
 {
-  vkDestroyShaderModule(device, shaderModule, nullptr);
+  if (shaderModule != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(device, shaderModule, nullptr);
+  }
 }
 
 VkPipelineShaderStageCreateInfo createShaderStageInfo(VkShaderModule shaderModule, VkShaderStageFlagBits stage)

@@ -18,6 +18,9 @@ struct QueueFamilyIndices
 VkPhysicalDevice pickPhysicalDevice(VkInstance instance);
 // note: no destroyer for physical devices because they get automaticially destroyed when the instance is destroyed
 
+VkDevice createLogicalDevice(VkPhysicalDevice physicalDevice, VkInstance instance);
+void destroyLogicalDevice(VkDevice device);
+
 bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
 bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);

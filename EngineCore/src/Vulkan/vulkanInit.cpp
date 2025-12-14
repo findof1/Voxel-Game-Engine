@@ -78,9 +78,14 @@ VkInstance createInstance(GLFWwindow *window)
 
 void destroyInstance(VkInstance instance)
 {
-  vkDestroyInstance(instance, nullptr);
+  if (instance != VK_NULL_HANDLE)
+  {
+    vkDestroyInstance(instance, nullptr);
+  }
 }
 
 bool checkValidationLayerSupport()
 {
+  // add later
+  return true;
 }

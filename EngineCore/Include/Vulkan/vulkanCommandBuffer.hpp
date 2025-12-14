@@ -4,7 +4,11 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
-VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkPhysicalDevice device);
+// common flags: VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT for recording command buffers every frame. VK_COMMAND_POOL_CREATE_TRANSIENT_BIT for using command buffers that are recorded with new commands very often.
+VkCommandPool createCommandPool(VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPoolCreateFlags flags = 0);
+void destroyCommandPool(VkCommandPool commandPool, VkDevice device);
+
+VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkDevice device);
 // note: no destroyer because the command pool automaticially destroys allocated command buffers
 
 void beginCommandBuffer(VkCommandBuffer commandBuffer);
