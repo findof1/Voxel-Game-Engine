@@ -26,6 +26,79 @@ void Renderer::init()
   inFlightFence = createFence(device, VK_FENCE_CREATE_SIGNALED_BIT);
 }
 
+void Renderer::drawFrame()
+{
+  waitForFence(inFlightFence, device);
+  resetFence(inFlightFence, device);
+  uint32_t imageIndex = acquireNextImageIndex(imageAvailableSemaphore, swapChainObjects.swapChain, device);
+  resetCommandBuffer(commandBuffer);
+
+  startRendering(imageIndex);
+  drawObjects();
+  endRendering();
+
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+  VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
+  VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  submitInfo.waitSemaphoreCount = 1;
+  submitInfo.pWaitSemaphores = waitSemaphores;
+  submitInfo.pWaitDstStageMask = waitStages;
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &commandBuffer;
+
+  VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = signalSemaphores;
+
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) != VK_SUCCESS)
+  {
+    std::cerr << "Failed to submit draw command buffer!" << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+
+  VkPresentInfoKHR presentInfo{};
+  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+  presentInfo.waitSemaphoreCount = 1;
+  presentInfo.pWaitSemaphores = signalSemaphores;
+
+  VkSwapchainKHR swapChains[] = {swapChainObjects.swapChain};
+  presentInfo.swapchainCount = 1;
+  presentInfo.pSwapchains = swapChains;
+  presentInfo.pImageIndices = &imageIndex;
+  presentInfo.pResults = nullptr;
+  vkQueuePresentKHR(presentQueue, &presentInfo);
+}
+
+void Renderer::startRendering(uint32_t imageIndex)
+{
+  beginCommandBuffer(commandBuffer);
+  beginRenderPass(commandBuffer, swapChainObjects.swapChainFramebuffers[imageIndex], renderPass, swapChainObjects.swapChainExtent);
+  bindGraphicsPipeline(commandBuffer, pipeline);
+
+  VkViewport viewport = makeViewport(swapChainObjects.swapChainExtent);
+  setViewport(commandBuffer, viewport);
+
+  VkRect2D scissor = makeScissor(swapChainObjects.swapChainExtent);
+  setScissor(commandBuffer, scissor);
+}
+
+void Renderer::drawObjects()
+{
+  vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+}
+
+void Renderer::endRendering()
+{
+  endRenderPass(commandBuffer);
+  endCommandBuffer(commandBuffer);
+}
+
 Renderer::~Renderer()
 {
   cleanup();

@@ -9,6 +9,7 @@
 #include "vulkanFramebuffers.hpp"
 #include "vulkanSyncObjects.hpp"
 #include "vulkanCommandBuffer.hpp"
+#include "vulkanDrawing.hpp"
 
 const std::vector<const char *> validationLayers = {
     "VK_LAYER_KHRONOS_validation"};
@@ -49,6 +50,10 @@ public:
 
   Renderer(GLFWwindow *window);
   void init();
+  void drawFrame();
+  void startRendering(uint32_t imageIndex);
+  void drawObjects();
+  void endRendering();
   ~Renderer();
 
 private:
