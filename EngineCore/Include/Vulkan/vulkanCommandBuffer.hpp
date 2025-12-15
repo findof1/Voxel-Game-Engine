@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vector>
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -8,6 +9,7 @@
 VkCommandPool createCommandPool(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPoolCreateFlags flags = 0);
 void destroyCommandPool(VkCommandPool commandPool, VkDevice device);
 
+std::vector<VkCommandBuffer> createCommandBuffers(VkCommandPool commandPool, VkDevice device, int count);
 VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkDevice device);
 // note: no destroyer because the command pool automaticially destroys allocated command buffers
 

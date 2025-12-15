@@ -30,6 +30,28 @@ void destroyCommandPool(VkCommandPool commandPool, VkDevice device)
   }
 }
 
+std::vector<VkCommandBuffer> createCommandBuffers(VkCommandPool commandPool, VkDevice device, int count)
+{
+  std::vector<VkCommandBuffer> commandBuffers;
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  allocInfo.commandPool = commandPool;
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandBufferCount = count;
+
+  commandBuffers.resize(count);
+  if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
+  {
+    std::cerr << "Failed to create command buffers!" << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+
+  return commandBuffers;
+}
+
 VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkDevice device)
 {
   VkCommandBufferAllocateInfo allocInfo{};
@@ -41,7 +63,7 @@ VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkDevice device)
   VkCommandBuffer commandBuffer;
   if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
   {
-    std::cerr << "Failed to create command buffers!" << std::endl;
+    std::cerr << "Failed to create command buffer!" << std::endl;
     glfwTerminate();
     std::cerr << "Press Enter to exit..." << std::endl;
     std::cin.get();

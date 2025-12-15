@@ -12,26 +12,52 @@ void Renderer::init()
   device = createLogicalDevice(surface, physicalDevice, instance);
   graphicsQueue = createGraphicsQueue(surface, device, physicalDevice);
   presentQueue = createPresentQueue(surface, device, physicalDevice);
-  swapChainObjects = createSwapChain(surface, device, physicalDevice, window);
+  swapChainObjects = createSwapChain(device, physicalDevice, surface, window);
   createImageViews(swapChainObjects, device);
   renderPass = createRenderPass(swapChainObjects, device);
   pipelineLayout = createPipelineLayout(device);
   pipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/vert.spv", "shaders/frag.spv");
   createSwapchainFramebuffers(renderPass, swapChainObjects, device);
   commandPool = createCommandPool(device, physicalDevice, surface, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-  commandBuffer = createCommandBuffer(commandPool, device);
+  commandBuffers = createCommandBuffers(commandPool, device, MAX_FRAMES_IN_FLIGHT);
 
-  imageAvailableSemaphore = createSemaphore(device);
-  renderFinishedSemaphore = createSemaphore(device);
-  inFlightFence = createFence(device, VK_FENCE_CREATE_SIGNALED_BIT);
+  imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+  for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    imageAvailableSemaphores[i] = createSemaphore(device);
+    inFlightFences[i] = createFence(device, VK_FENCE_CREATE_SIGNALED_BIT);
+  }
+
+  renderFinishedSemaphores.resize(swapChainObjects.swapChainImages.size());
+  for (size_t i = 0; i < renderFinishedSemaphores.size(); i++)
+  {
+    renderFinishedSemaphores[i] = createSemaphore(device);
+  }
 }
 
 void Renderer::drawFrame()
 {
-  waitForFence(inFlightFence, device);
-  resetFence(inFlightFence, device);
-  uint32_t imageIndex = acquireNextImageIndex(imageAvailableSemaphore, swapChainObjects.swapChain, device);
-  resetCommandBuffer(commandBuffer);
+  waitForFence(inFlightFences[currentFrame], device);
+
+  uint32_t imageIndex;
+  VkResult result = acquireNextImageIndex(imageIndex, imageAvailableSemaphores[currentFrame], swapChainObjects.swapChain, device);
+  if (result == VK_ERROR_OUT_OF_DATE_KHR)
+  {
+    recreateSwapChain(renderPass, swapChainObjects, device, physicalDevice, surface, window);
+    return; // stop drawing the frame if the swapchain is out of date
+  }
+  else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+  {
+    std::cerr << "Failed to acquire swap chain image!" << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+
+  resetFence(inFlightFences[currentFrame], device);
+  resetCommandBuffer(commandBuffers[currentFrame]);
 
   startRendering(imageIndex);
   drawObjects();
@@ -40,19 +66,19 @@ void Renderer::drawFrame()
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-  VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
+  VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
   VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = waitSemaphores;
   submitInfo.pWaitDstStageMask = waitStages;
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffer;
+  submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
 
-  VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+  VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[imageIndex]};
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSemaphores;
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) != VK_SUCCESS)
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
   {
     std::cerr << "Failed to submit draw command buffer!" << std::endl;
     glfwTerminate();
@@ -72,31 +98,46 @@ void Renderer::drawFrame()
   presentInfo.pSwapchains = swapChains;
   presentInfo.pImageIndices = &imageIndex;
   presentInfo.pResults = nullptr;
-  vkQueuePresentKHR(presentQueue, &presentInfo);
+  result = vkQueuePresentKHR(presentQueue, &presentInfo);
+
+  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+  {
+    recreateSwapChain(renderPass, swapChainObjects, device, physicalDevice, surface, window);
+  }
+  else if (result != VK_SUCCESS)
+  {
+    std::cerr << "Failed to present swap chain image!" << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+
+  currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void Renderer::startRendering(uint32_t imageIndex)
 {
-  beginCommandBuffer(commandBuffer);
-  beginRenderPass(commandBuffer, swapChainObjects.swapChainFramebuffers[imageIndex], renderPass, swapChainObjects.swapChainExtent);
-  bindGraphicsPipeline(commandBuffer, pipeline);
+  beginCommandBuffer(commandBuffers[currentFrame]);
+  beginRenderPass(commandBuffers[currentFrame], swapChainObjects.swapChainFramebuffers[imageIndex], renderPass, swapChainObjects.swapChainExtent);
+  bindGraphicsPipeline(commandBuffers[currentFrame], pipeline);
 
   VkViewport viewport = makeViewport(swapChainObjects.swapChainExtent);
-  setViewport(commandBuffer, viewport);
+  setViewport(commandBuffers[currentFrame], viewport);
 
   VkRect2D scissor = makeScissor(swapChainObjects.swapChainExtent);
-  setScissor(commandBuffer, scissor);
+  setScissor(commandBuffers[currentFrame], scissor);
 }
 
 void Renderer::drawObjects()
 {
-  vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+  vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
 }
 
 void Renderer::endRendering()
 {
-  endRenderPass(commandBuffer);
-  endCommandBuffer(commandBuffer);
+  endRenderPass(commandBuffers[currentFrame]);
+  endCommandBuffer(commandBuffers[currentFrame]);
 }
 
 Renderer::~Renderer()
@@ -108,16 +149,26 @@ void Renderer::cleanup()
 {
   vkDeviceWaitIdle(device);
 
-  destroyFence(inFlightFence, device);
-  destroySemaphore(renderFinishedSemaphore, device);
-  destroySemaphore(imageAvailableSemaphore, device);
+  for (auto fence : inFlightFences)
+  {
+    destroyFence(fence, device);
+  }
+
+  for (auto semaphore : renderFinishedSemaphores)
+  {
+    destroySemaphore(semaphore, device);
+  }
+
+  for (auto semaphore : imageAvailableSemaphores)
+  {
+    destroySemaphore(semaphore, device);
+  }
+
   destroyCommandPool(commandPool, device);
   destroyPipeline(pipeline, device);
   destroyPipelineLayout(pipelineLayout, device);
   destroyRenderPass(renderPass, device);
-  destroySwapchainFramebuffers(swapChainObjects, device);
-  destroyImageViews(swapChainObjects.swapChainImageViews, device);
-  destroySwapChain(swapChainObjects.swapChain, device);
+  cleanupSwapChain(swapChainObjects, device);
   destroyLogicalDevice(device);
   destroySurface(surface, instance);
   destroyInstance(instance);

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 
 #include "vulkanInit.hpp"
@@ -21,6 +23,8 @@ const std::vector<VkDynamicState> dynamicStates = {
     VK_DYNAMIC_STATE_VIEWPORT,
     VK_DYNAMIC_STATE_SCISSOR};
 
+const int MAX_FRAMES_IN_FLIGHT = 2;
+
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
 #else
@@ -42,11 +46,15 @@ public:
   VkPipelineLayout pipelineLayout;
   VkPipeline pipeline;
   VkCommandPool commandPool;
-  VkCommandBuffer commandBuffer;
+  std::vector<VkCommandBuffer> commandBuffers;
 
-  VkSemaphore imageAvailableSemaphore;
-  VkSemaphore renderFinishedSemaphore;
-  VkFence inFlightFence;
+  std::vector<VkSemaphore> imageAvailableSemaphores;
+  std::vector<VkSemaphore> renderFinishedSemaphores;
+  std::vector<VkFence> inFlightFences;
+
+  // counts between 0 and MAX_FRAMES_IN_FLIGHT and then resets to 0 using (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT at the end of each frame
+  uint32_t currentFrame = 0;
+  bool framebufferResized = false;
 
   Renderer(GLFWwindow *window);
   void init();

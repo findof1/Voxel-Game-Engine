@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
-GLFWwindow *initWindow(const int w, const int h, std::string windowName);
+GLFWwindow *initWindow(const int w, const int h, std::string windowName, void *userPointer = nullptr);
 void closeWindow(GLFWwindow *window);
 
 VkInstance createInstance(GLFWwindow *window);

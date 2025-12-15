@@ -4,8 +4,9 @@
 
 #include "vulkanSwapchain.hpp"
 #include "vulkanDevice.hpp"
+#include "vulkanFramebuffers.hpp"
 
-SwapChainObjects createSwapChain(VkSurfaceKHR surface, VkDevice device, VkPhysicalDevice physicalDevice, GLFWwindow *window)
+SwapChainObjects createSwapChain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow *window)
 {
   SwapChainObjects swapChainObjects;
 
@@ -72,6 +73,34 @@ SwapChainObjects createSwapChain(VkSurfaceKHR surface, VkDevice device, VkPhysic
   return swapChainObjects;
 }
 
+void recreateSwapChain(VkRenderPass renderPass, SwapChainObjects &swapChainObjects, VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow *window)
+{
+  int width = 0, height = 0;
+  glfwGetFramebufferSize(window, &width, &height);
+  while (width == 0 || height == 0)
+  {
+    glfwGetFramebufferSize(window, &width, &height);
+    glfwWaitEvents();
+  }
+
+  vkDeviceWaitIdle(device);
+
+  cleanupSwapChain(swapChainObjects, device);
+
+  SwapChainObjects newSwapChainObjects = createSwapChain(device, physicalDevice, surface, window);
+  createImageViews(newSwapChainObjects, device);
+  createSwapchainFramebuffers(renderPass, newSwapChainObjects, device);
+
+  swapChainObjects = newSwapChainObjects;
+}
+
+void cleanupSwapChain(SwapChainObjects &swapChainObjects, VkDevice device)
+{
+  destroySwapchainFramebuffers(swapChainObjects, device);
+  destroyImageViews(swapChainObjects.swapChainImageViews, device);
+  destroySwapChain(swapChainObjects.swapChain, device);
+}
+
 void destroySwapChain(VkSwapchainKHR swapChain, VkDevice device)
 {
   if (swapChain != VK_NULL_HANDLE)
@@ -80,11 +109,9 @@ void destroySwapChain(VkSwapchainKHR swapChain, VkDevice device)
   }
 }
 
-uint32_t acquireNextImageIndex(VkSemaphore imageAvailableSemaphore, VkSwapchainKHR swapChain, VkDevice device)
+VkResult acquireNextImageIndex(uint32_t &imageIndex, VkSemaphore imageAvailableSemaphore, VkSwapchainKHR swapChain, VkDevice device)
 {
-  uint32_t imageIndex;
-  vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-  return imageIndex;
+  return vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 }
 
 void createImageViews(SwapChainObjects &swapChainObjects, VkDevice device)

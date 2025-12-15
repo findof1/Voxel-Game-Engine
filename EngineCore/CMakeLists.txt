@@ -39,6 +39,8 @@ add_executable(GameEngine
     ${IMGUI_BACKENDS}
 )
 
+#target_compile_definitions(GameEngine PRIVATE NDEBUG)
+
 target_link_libraries(GameEngine
     glfw3
     vulkan-1

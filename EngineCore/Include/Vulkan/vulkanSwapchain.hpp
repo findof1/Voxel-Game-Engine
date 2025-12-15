@@ -23,10 +23,12 @@ struct SwapChainObjects
   std::vector<VkFramebuffer> swapChainFramebuffers;
 };
 
-SwapChainObjects createSwapChain(VkSurfaceKHR surface, VkDevice device, VkPhysicalDevice physicalDevice, GLFWwindow *window);
+SwapChainObjects createSwapChain(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow *window);
+void recreateSwapChain(VkRenderPass renderPass, SwapChainObjects &swapChainObjects, VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow *window);
+void cleanupSwapChain(SwapChainObjects &swapChainObjects, VkDevice device);
 void destroySwapChain(VkSwapchainKHR swapChain, VkDevice device);
 
-uint32_t acquireNextImageIndex(VkSemaphore imageAvailableSemaphore, VkSwapchainKHR swapChain, VkDevice device);
+VkResult acquireNextImageIndex(uint32_t &imageIndex, VkSemaphore imageAvailableSemaphore, VkSwapchainKHR swapChain, VkDevice device);
 
 void createImageViews(SwapChainObjects &swapChainObjects, VkDevice device);
 void destroyImageViews(std::vector<VkImageView> &swapChainImageViews, VkDevice device);

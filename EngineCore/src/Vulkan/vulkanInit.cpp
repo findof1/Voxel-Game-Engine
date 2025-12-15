@@ -3,8 +3,15 @@
 
 #include "vulkanInit.hpp"
 #include "renderer.hpp"
+#include "application.hpp"
 
-GLFWwindow *initWindow(const int w, const int h, std::string windowName)
+void framebufferResizeCallback(GLFWwindow *window, int width, int height)
+{
+  auto app = reinterpret_cast<Application *>(glfwGetWindowUserPointer(window));
+  app->renderer.framebufferResized = true;
+}
+
+GLFWwindow *initWindow(const int w, const int h, std::string windowName, void *userPointer)
 {
   if (!glfwInit())
   {
@@ -20,6 +27,12 @@ GLFWwindow *initWindow(const int w, const int h, std::string windowName)
     std::cerr << "Failed to create GLFW window\n";
     glfwTerminate();
     return nullptr;
+  }
+
+  if (userPointer)
+  {
+    glfwSetWindowUserPointer(window, userPointer);
+    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
   }
 
   return window;
