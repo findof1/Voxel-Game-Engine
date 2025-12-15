@@ -1,5 +1,8 @@
-#include "vulkanInit.hpp"
 #include <vector>
+#include <cstring>
+
+#include "vulkanInit.hpp"
+#include "renderer.hpp"
 
 GLFWwindow *initWindow(const int w, const int h, std::string windowName)
 {
@@ -30,6 +33,15 @@ void closeWindow(GLFWwindow *window)
 
 VkInstance createInstance(GLFWwindow *window)
 {
+  if (enableValidationLayers && !checkValidationLayerSupport())
+  {
+    std::cerr << "Validation layers requested, but not available!" << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+
   VkInstance instance;
 
   VkApplicationInfo appInfo{};
@@ -43,6 +55,16 @@ VkInstance createInstance(GLFWwindow *window)
   VkInstanceCreateInfo createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   createInfo.pApplicationInfo = &appInfo;
+
+  if (enableValidationLayers)
+  {
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+  }
+  else
+  {
+    createInfo.enabledLayerCount = 0;
+  }
 
   uint32_t glfwExtensionCount = 0;
   const char **glfwExtensions;
@@ -86,6 +108,30 @@ void destroyInstance(VkInstance instance)
 
 bool checkValidationLayerSupport()
 {
-  // add later
+  uint32_t layerCount;
+  vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+  std::vector<VkLayerProperties> availableLayers(layerCount);
+  vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+  for (const char *layerName : validationLayers)
+  {
+    bool layerFound = false;
+
+    for (const auto &layerProperties : availableLayers)
+    {
+      if (strcmp(layerName, layerProperties.layerName) == 0)
+      {
+        layerFound = true;
+        break;
+      }
+    }
+
+    if (!layerFound)
+    {
+      return false;
+    }
+  }
+
   return true;
 }

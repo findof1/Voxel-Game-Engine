@@ -11,7 +11,7 @@ VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass 
   VkShaderModule fragShaderModule = createShaderModule(device, fragShaderCode);
 
   VkPipelineShaderStageCreateInfo vertShaderStageInfo = createShaderStageInfo(vertShaderModule, VK_SHADER_STAGE_VERTEX_BIT);
-  VkPipelineShaderStageCreateInfo fragShaderStageInfo = createShaderStageInfo(vertShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT);
+  VkPipelineShaderStageCreateInfo fragShaderStageInfo = createShaderStageInfo(fragShaderModule, VK_SHADER_STAGE_FRAGMENT_BIT);
   VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
   VkPipelineDynamicStateCreateInfo dynamicState = createDynamicStateInfo();
@@ -21,7 +21,7 @@ VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass 
   VkPipelineRasterizationStateCreateInfo rasterizer = createRasterizationStateInfo();
   VkPipelineMultisampleStateCreateInfo multisampling = createMultisampleStateInfo();
   VkPipelineColorBlendAttachmentState colorBlendAttachment = createColorBlendAttachmentInfo(VK_FALSE);
-  VkPipelineColorBlendStateCreateInfo colorBlending = createColorBlendStateInfo(colorBlendAttachment);
+  VkPipelineColorBlendStateCreateInfo colorBlending = createColorBlendStateInfo(&colorBlendAttachment);
 
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -40,6 +40,20 @@ VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass 
   pipelineInfo.subpass = 0;
   pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
   pipelineInfo.basePipelineIndex = -1;
+
+  VkPipeline graphicsPipeline;
+  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+  {
+    std::cerr << "Failed to create graphics pipeline!" << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+
+  destroyShaderModule(vertShaderModule, device);
+  destroyShaderModule(fragShaderModule, device);
+  return graphicsPipeline;
 }
 
 void destroyPipeline(VkPipeline pipeline, VkDevice device)
@@ -146,7 +160,7 @@ VkPipelineVertexInputStateCreateInfo createVertexInputStateInfo()
   return vertexInputInfo;
 }
 
-VkPipelineInputAssemblyStateCreateInfo createInputAssembleInfo(VkPrimitiveTopology topologyType = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+VkPipelineInputAssemblyStateCreateInfo createInputAssembleInfo(VkPrimitiveTopology topologyType)
 {
   VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
   inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -192,7 +206,7 @@ VkPipelineViewportStateCreateInfo createViewportStateInfo(VkViewport viewport, V
   return viewportState;
 }
 
-VkPipelineRasterizationStateCreateInfo createRasterizationStateInfo(VkPolygonMode drawMode = VK_POLYGON_MODE_FILL)
+VkPipelineRasterizationStateCreateInfo createRasterizationStateInfo(VkPolygonMode drawMode)
 {
   VkPipelineRasterizationStateCreateInfo rasterizer{};
   rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;

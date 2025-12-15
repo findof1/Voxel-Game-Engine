@@ -26,7 +26,7 @@ void destroySemaphore(VkSemaphore semaphore, VkDevice device)
   }
 }
 
-VkFence createFence(VkDevice device, VkFenceCreateFlags flags = 0)
+VkFence createFence(VkDevice device, VkFenceCreateFlags flags)
 {
   VkFenceCreateInfo fenceInfo{};
   fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;

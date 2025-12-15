@@ -1,7 +1,4 @@
 .vscode
 build
-*/CMakeLists.txt
-CMakeLists.txt
-CMakePresets.json
 shaders/myCompile.bat
 shaders/*.spv

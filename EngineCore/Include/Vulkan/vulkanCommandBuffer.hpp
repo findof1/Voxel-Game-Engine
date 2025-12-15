@@ -5,7 +5,7 @@
 #include <GLFW/glfw3.h>
 
 // common flags: VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT for recording command buffers every frame. VK_COMMAND_POOL_CREATE_TRANSIENT_BIT for using command buffers that are recorded with new commands very often.
-VkCommandPool createCommandPool(VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPoolCreateFlags flags = 0);
+VkCommandPool createCommandPool(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPoolCreateFlags flags = 0);
 void destroyCommandPool(VkCommandPool commandPool, VkDevice device);
 
 VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkDevice device);

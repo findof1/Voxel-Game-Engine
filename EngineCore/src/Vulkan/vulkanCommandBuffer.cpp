@@ -1,9 +1,9 @@
 #include "vulkanCommandBuffer.hpp"
 #include "vulkanDevice.hpp"
 
-VkCommandPool createCommandPool(VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPoolCreateFlags flags = 0)
+VkCommandPool createCommandPool(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkCommandPoolCreateFlags flags)
 {
-  QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
+  QueueFamilyIndices queueFamilyIndices = findQueueFamilies(surface, physicalDevice);
 
   VkCommandPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -47,6 +47,8 @@ VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkDevice device)
     std::cin.get();
     exit(EXIT_FAILURE);
   }
+
+  return commandBuffer;
 }
 
 void beginCommandBuffer(VkCommandBuffer commandBuffer)

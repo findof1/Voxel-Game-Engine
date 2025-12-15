@@ -23,15 +23,15 @@ struct SwapChainObjects
   std::vector<VkFramebuffer> swapChainFramebuffers;
 };
 
-SwapChainObjects createSwapChain(VkSurfaceKHR surface, VkDevice device, VkPhysicalDevice physicalDevice);
+SwapChainObjects createSwapChain(VkSurfaceKHR surface, VkDevice device, VkPhysicalDevice physicalDevice, GLFWwindow *window);
 void destroySwapChain(VkSwapchainKHR swapChain, VkDevice device);
 
 uint32_t acquireNextImageIndex(VkSemaphore imageAvailableSemaphore, VkSwapchainKHR swapChain, VkDevice device);
 
-void createImageViews(SwapChainObjects &swapChainObjects);
+void createImageViews(SwapChainObjects &swapChainObjects, VkDevice device);
 void destroyImageViews(std::vector<VkImageView> &swapChainImageViews, VkDevice device);
 
-SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice);
+SwapChainSupportDetails querySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
-VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
+VkExtent2D chooseSwapExtent(GLFWwindow *window, const VkSurfaceCapabilitiesKHR &capabilities);

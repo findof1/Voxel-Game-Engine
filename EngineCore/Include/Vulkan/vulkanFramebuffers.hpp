@@ -9,5 +9,5 @@
 void createSwapchainFramebuffers(VkRenderPass renderPass, SwapChainObjects &swapChainObjects, VkDevice device);
 void destroySwapchainFramebuffers(SwapChainObjects &swapChainObjects, VkDevice device);
 
-VkFramebuffer createFramebuffer(VkRenderPass renderPass, std::vector<VkImageView> &attachments, VkExtent2D extent, VkDevice device);
+VkFramebuffer createFramebuffer(VkRenderPass renderPass, const std::vector<VkImageView> &attachments, VkExtent2D extent, VkDevice device);
 void destroyFramebuffer(VkFramebuffer framebuffer, VkDevice device);

@@ -8,19 +8,20 @@
 struct QueueFamilyIndices
 {
   std::optional<uint32_t> graphicsFamily;
+  std::optional<uint32_t> presentFamily;
 
   bool isComplete()
   {
-    return graphicsFamily.has_value();
+    return graphicsFamily.has_value() && presentFamily.has_value();
   }
 };
 
-VkPhysicalDevice pickPhysicalDevice(VkInstance instance);
+VkPhysicalDevice pickPhysicalDevice(VkSurfaceKHR surface, VkInstance instance);
 // note: no destroyer for physical devices because they get automaticially destroyed when the instance is destroyed
 
-VkDevice createLogicalDevice(VkPhysicalDevice physicalDevice, VkInstance instance);
+VkDevice createLogicalDevice(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkInstance instance);
 void destroyLogicalDevice(VkDevice device);
 
-bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
+int rateDeviceSuitability(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
 bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
+QueueFamilyIndices findQueueFamilies(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);

@@ -49,7 +49,7 @@ void destroyRenderPass(VkRenderPass renderPass, VkDevice device)
   }
 }
 
-void beginRenderPass(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer, VkRenderPass renderPass, VkExtent2D extent, VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}}, VkOffset2D offset = {0, 0})
+void beginRenderPass(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer, VkRenderPass renderPass, VkExtent2D extent, VkClearValue clearColor, VkOffset2D offset)
 {
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

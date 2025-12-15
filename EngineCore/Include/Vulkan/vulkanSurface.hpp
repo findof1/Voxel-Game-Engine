@@ -4,8 +4,9 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
-VkSurfaceKHR createSurface(VkDevice device, VkInstance instance); // note: steps are different for windows and linux, so use #ifdef to add both
+VkSurfaceKHR createSurface(VkInstance instance, GLFWwindow *window);
 void destroySurface(VkSurfaceKHR surface, VkInstance instance);
 
+VkQueue createGraphicsQueue(VkSurfaceKHR surface, VkDevice device, VkPhysicalDevice physicalDevice);
 VkQueue createPresentQueue(VkSurfaceKHR surface, VkDevice device, VkPhysicalDevice physicalDevice);
-// note: no destroyer for the present queue because they are automaticially destroyed with the VkDevice
+// note: no destroyer for the queues because they are automaticially destroyed with the VkDevice
