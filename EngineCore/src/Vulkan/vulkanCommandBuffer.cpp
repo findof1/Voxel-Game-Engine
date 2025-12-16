@@ -106,3 +106,44 @@ void resetCommandBuffer(VkCommandBuffer commandBuffer)
 {
   vkResetCommandBuffer(commandBuffer, 0);
 }
+
+void submitFrame(VkSemaphore waitSemaphore, VkPipelineStageFlags waitStage, VkSemaphore signalSemaphore, VkFence fence, VkCommandBuffer commandBuffer, VkQueue graphicsQueue)
+{
+  VkSubmitInfo submitInfo{};
+  submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+  submitInfo.waitSemaphoreCount = 1;
+  submitInfo.pWaitSemaphores = &waitSemaphore;
+  submitInfo.pWaitDstStageMask = &waitStage;
+
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &commandBuffer;
+
+  submitInfo.signalSemaphoreCount = 1;
+  submitInfo.pSignalSemaphores = &signalSemaphore;
+
+  VkResult res = vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence);
+  if (res != VK_SUCCESS)
+  {
+    std::cerr << "Failed to submit draw command buffer!" << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+}
+
+VkResult presentFrame(uint32_t imageIndex, VkSemaphore waitSemaphore, VkSwapchainKHR swapchain, VkQueue presentQueue)
+{
+  VkPresentInfoKHR presentInfo{};
+  presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+  presentInfo.waitSemaphoreCount = 1;
+  presentInfo.pWaitSemaphores = &waitSemaphore;
+
+  presentInfo.swapchainCount = 1;
+  presentInfo.pSwapchains = &swapchain;
+  presentInfo.pImageIndices = &imageIndex;
+
+  return vkQueuePresentKHR(presentQueue, &presentInfo);
+}

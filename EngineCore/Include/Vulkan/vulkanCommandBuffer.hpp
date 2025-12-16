@@ -16,3 +16,6 @@ VkCommandBuffer createCommandBuffer(VkCommandPool commandPool, VkDevice device);
 void beginCommandBuffer(VkCommandBuffer commandBuffer);
 void endCommandBuffer(VkCommandBuffer commandBuffer);
 void resetCommandBuffer(VkCommandBuffer commandBuffer);
+
+void submitFrame(VkSemaphore waitSemaphore, VkPipelineStageFlags waitStage, VkSemaphore signalSemaphore, VkFence fence, VkCommandBuffer commandBuffer, VkQueue graphicsQueue);
+VkResult presentFrame(uint32_t imageIndex, VkSemaphore waitSemaphore, VkSwapchainKHR swapchain, VkQueue presentQueue);
