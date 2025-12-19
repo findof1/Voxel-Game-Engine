@@ -1,6 +1,7 @@
 #include "vulkanPipeline.hpp"
 #include "fileUtils.hpp"
 #include "renderer.hpp"
+#include "vertexData.hpp"
 
 VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass renderPass, const SwapChainObjects &swapChainObjects, VkDevice device, const std::string &vertexShaderPath, const std::string &fragmentShaderPath)
 {
@@ -15,7 +16,9 @@ VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass 
   VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
   VkPipelineDynamicStateCreateInfo dynamicState = createDynamicStateInfo();
-  VkPipelineVertexInputStateCreateInfo vertexInputInfo = createVertexInputStateInfo();
+  auto vertexBinding = Vertex::getBindingDescription();
+  auto vertexAttributes = Vertex::getAttributeDescriptions();
+  VkPipelineVertexInputStateCreateInfo vertexInputInfo = createVertexInputStateInfo(&vertexBinding, vertexAttributes);
   VkPipelineInputAssemblyStateCreateInfo inputAssembly = createInputAssembleInfo();
   VkPipelineViewportStateCreateInfo viewportState = createViewportStateInfo(swapChainObjects);
   VkPipelineRasterizationStateCreateInfo rasterizer = createRasterizationStateInfo();
@@ -148,14 +151,15 @@ VkPipelineDynamicStateCreateInfo createDynamicStateInfo()
   return dynamicState;
 }
 
-VkPipelineVertexInputStateCreateInfo createVertexInputStateInfo()
+VkPipelineVertexInputStateCreateInfo createVertexInputStateInfo(const VkVertexInputBindingDescription *bindingDescription, const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions)
 {
   VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-  vertexInputInfo.vertexBindingDescriptionCount = 0;
-  vertexInputInfo.pVertexBindingDescriptions = nullptr;
-  vertexInputInfo.vertexAttributeDescriptionCount = 0;
-  vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
+  vertexInputInfo.vertexBindingDescriptionCount = 1;
+  vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+  vertexInputInfo.pVertexBindingDescriptions = bindingDescription;
+  vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
   return vertexInputInfo;
 }

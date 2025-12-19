@@ -12,6 +12,8 @@
 #include "vulkanSyncObjects.hpp"
 #include "vulkanCommandBuffer.hpp"
 #include "vulkanDrawing.hpp"
+#include "vulkanBufferObjects.hpp"
+#include "vulkanBufferUtils.hpp"
 
 const std::vector<const char *> validationLayers = {
     "VK_LAYER_KHRONOS_validation"};
@@ -51,6 +53,11 @@ public:
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;
   std::vector<VkFence> inFlightFences;
+
+  VkBuffer vertexBuffer;
+  VkDeviceMemory vertexBufferMemory;
+  VkBuffer indexBuffer;
+  VkDeviceMemory indexBufferMemory;
 
   // counts between 0 and MAX_FRAMES_IN_FLIGHT and then resets to 0 using (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT at the end of each frame
   uint32_t currentFrame = 0;

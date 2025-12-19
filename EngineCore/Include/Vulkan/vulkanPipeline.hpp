@@ -19,7 +19,7 @@ void destroyPipelineLayout(VkPipelineLayout pipelineLayout, VkDevice device);
 
 VkPipelineShaderStageCreateInfo createShaderStageInfo(VkShaderModule shaderModule, VkShaderStageFlagBits stage);
 VkPipelineDynamicStateCreateInfo createDynamicStateInfo();
-VkPipelineVertexInputStateCreateInfo createVertexInputStateInfo();
+VkPipelineVertexInputStateCreateInfo createVertexInputStateInfo(const VkVertexInputBindingDescription *bindingDescription, const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions);
 VkPipelineInputAssemblyStateCreateInfo createInputAssembleInfo(VkPrimitiveTopology topologyType = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 VkPipelineViewportStateCreateInfo createViewportStateInfo(const SwapChainObjects &swapChainObjects);                // use swapchian to make viewport fullscreen
 VkPipelineViewportStateCreateInfo createViewportStateInfo(VkViewport viewport, VkRect2D scissor);                   // used for viewports of any scale

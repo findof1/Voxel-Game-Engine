@@ -36,3 +36,8 @@ void draw(VkCommandBuffer commandBuffer, int vertexCount, int instanceCount, int
 {
   vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
+
+void drawIndexed(VkCommandBuffer commandBuffer, int indicesCount, int instanceCount, int firstVertex, int firstInstance)
+{
+  vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
+}

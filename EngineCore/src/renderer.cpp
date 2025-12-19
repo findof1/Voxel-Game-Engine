@@ -1,5 +1,14 @@
 #include "renderer.hpp"
 
+const std::vector<Vertex> vertices = {
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+
+const std::vector<uint16_t> indices = {
+    0, 1, 2, 2, 3, 0};
+
 Renderer::Renderer(GLFWwindow *window) : window(window)
 {
 }
@@ -34,6 +43,9 @@ void Renderer::init()
   {
     renderFinishedSemaphores[i] = createSemaphore(device);
   }
+
+  createVertexBuffer(vertexBufferMemory, vertexBuffer, vertices, commandPool, graphicsQueue, device, physicalDevice);
+  createIndexBuffer(indexBufferMemory, indexBuffer, indices, commandPool, graphicsQueue, device, physicalDevice);
 }
 
 void Renderer::drawFrame()
@@ -87,6 +99,10 @@ void Renderer::startRendering(uint32_t imageIndex)
 {
   beginCommandBuffer(commandBuffers[currentFrame]);
   beginRenderPass(commandBuffers[currentFrame], swapChainObjects.swapChainFramebuffers[imageIndex], renderPass, swapChainObjects.swapChainExtent);
+}
+
+void Renderer::drawObjects()
+{
   bindGraphicsPipeline(commandBuffers[currentFrame], pipeline);
 
   VkViewport viewport = makeViewport(swapChainObjects.swapChainExtent);
@@ -94,11 +110,10 @@ void Renderer::startRendering(uint32_t imageIndex)
 
   VkRect2D scissor = makeScissor(swapChainObjects.swapChainExtent);
   setScissor(commandBuffers[currentFrame], scissor);
-}
 
-void Renderer::drawObjects()
-{
-  vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
+  bindVertexBuffer(vertexBuffer, commandBuffers[currentFrame]);
+  bindIndexBuffer(indexBuffer, commandBuffers[currentFrame]);
+  drawIndexed(commandBuffers[currentFrame], indices.size());
 }
 
 void Renderer::endRendering()
@@ -115,6 +130,9 @@ Renderer::~Renderer()
 void Renderer::cleanup()
 {
   vkDeviceWaitIdle(device);
+
+  destroyBuffer(vertexBufferMemory, vertexBuffer, device);
+  destroyBuffer(indexBufferMemory, indexBuffer, device);
 
   for (auto fence : inFlightFences)
   {
