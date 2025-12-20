@@ -74,7 +74,7 @@ SwapChainObjects createSwapChain(VkDevice device, VkPhysicalDevice physicalDevic
   return swapChainObjects;
 }
 
-void recreateSwapChain(VkRenderPass renderPass, SwapChainObjects &swapChainObjects, VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow *window)
+void recreateSwapChain(VkCommandPool commandPool, VkQueue graphicsQueue, VkRenderPass renderPass, SwapChainObjects &swapChainObjects, VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, GLFWwindow *window)
 {
   int width = 0, height = 0;
   glfwGetFramebufferSize(window, &width, &height);
@@ -90,6 +90,7 @@ void recreateSwapChain(VkRenderPass renderPass, SwapChainObjects &swapChainObjec
 
   SwapChainObjects newSwapChainObjects = createSwapChain(device, physicalDevice, surface, window);
   createImageViews(newSwapChainObjects, device);
+  createDepthResources(swapChainObjects, commandPool, graphicsQueue, device, physicalDevice);
   createSwapchainFramebuffers(renderPass, newSwapChainObjects, device);
 
   swapChainObjects = newSwapChainObjects;
@@ -97,6 +98,10 @@ void recreateSwapChain(VkRenderPass renderPass, SwapChainObjects &swapChainObjec
 
 void cleanupSwapChain(SwapChainObjects &swapChainObjects, VkDevice device)
 {
+  vkDestroyImageView(device, swapChainObjects.depthImageView, nullptr);
+  vkDestroyImage(device, swapChainObjects.depthImage, nullptr);
+  vkFreeMemory(device, swapChainObjects.depthImageMemory, nullptr);
+
   destroySwapchainFramebuffers(swapChainObjects, device);
   destroyImageViews(swapChainObjects.swapChainImageViews, device);
   destroySwapChain(swapChainObjects.swapChain, device);
@@ -121,7 +126,7 @@ void createImageViews(SwapChainObjects &swapChainObjects, VkDevice device)
 
   for (uint32_t i = 0; i < swapChainObjects.swapChainImages.size(); i++)
   {
-    swapChainObjects.swapChainImageViews[i] = createImageView(swapChainObjects.swapChainImages[i], swapChainObjects.swapChainImageFormat, device);
+    swapChainObjects.swapChainImageViews[i] = createImageView(swapChainObjects.swapChainImages[i], swapChainObjects.swapChainImageFormat, device, VK_IMAGE_ASPECT_COLOR_BIT);
   }
 }
 
@@ -205,4 +210,49 @@ VkExtent2D chooseSwapExtent(GLFWwindow *window, const VkSurfaceCapabilitiesKHR &
 
     return actualExtent;
   }
+}
+
+void createDepthResources(SwapChainObjects &swapChainObjects, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  VkFormat depthFormat = findDepthFormat(physicalDevice);
+
+  createImage(swapChainObjects.swapChainExtent.width, swapChainObjects.swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, swapChainObjects.depthImage, swapChainObjects.depthImageMemory, device, physicalDevice);
+
+  swapChainObjects.depthImageView = createImageView(swapChainObjects.depthImage, depthFormat, device, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+  transitionImageLayout(swapChainObjects.depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, commandPool, graphicsQueue, device);
+}
+
+VkFormat findDepthFormat(VkPhysicalDevice physicalDevice)
+{
+  return findSupportedFormat({VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, physicalDevice);
+}
+
+bool hasStencilComponent(VkFormat format)
+{
+  return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
+
+VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkPhysicalDevice physicalDevice)
+{
+  for (VkFormat format : candidates)
+  {
+    VkFormatProperties props;
+    vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+    if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+    {
+      return format;
+    }
+    else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+    {
+      return format;
+    }
+  }
+
+  std::cerr << "Failed to find supported format!" << std::endl;
+  glfwTerminate();
+  std::cerr << "Press Enter to exit..." << std::endl;
+  std::cin.get();
+  exit(EXIT_FAILURE);
 }

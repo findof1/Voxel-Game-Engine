@@ -23,6 +23,7 @@ VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass 
   VkPipelineViewportStateCreateInfo viewportState = createViewportStateInfo(swapChainObjects);
   VkPipelineRasterizationStateCreateInfo rasterizer = createRasterizationStateInfo();
   VkPipelineMultisampleStateCreateInfo multisampling = createMultisampleStateInfo();
+  VkPipelineDepthStencilStateCreateInfo depthStencil = createDepthStencilStateInfo();
   VkPipelineColorBlendAttachmentState colorBlendAttachment = createColorBlendAttachmentInfo(VK_FALSE);
   VkPipelineColorBlendStateCreateInfo colorBlending = createColorBlendStateInfo(&colorBlendAttachment);
 
@@ -35,7 +36,7 @@ VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass 
   pipelineInfo.pViewportState = &viewportState;
   pipelineInfo.pRasterizationState = &rasterizer;
   pipelineInfo.pMultisampleState = &multisampling;
-  pipelineInfo.pDepthStencilState = nullptr;
+  pipelineInfo.pDepthStencilState = &depthStencil;
   pipelineInfo.pColorBlendState = &colorBlending;
   pipelineInfo.pDynamicState = &dynamicState;
   pipelineInfo.layout = pipelineLayout;
@@ -242,6 +243,23 @@ VkPipelineMultisampleStateCreateInfo createMultisampleStateInfo()
   multisampling.alphaToOneEnable = VK_FALSE;
 
   return multisampling;
+}
+
+VkPipelineDepthStencilStateCreateInfo createDepthStencilStateInfo()
+{
+  VkPipelineDepthStencilStateCreateInfo depthStencil{};
+  depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+  depthStencil.depthTestEnable = VK_TRUE;
+  depthStencil.depthWriteEnable = VK_TRUE;
+  depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+  depthStencil.depthBoundsTestEnable = VK_FALSE;
+  depthStencil.minDepthBounds = 0.0f;
+  depthStencil.maxDepthBounds = 1.0f;
+  depthStencil.stencilTestEnable = VK_FALSE;
+  depthStencil.front = {};
+  depthStencil.back = {};
+
+  return depthStencil;
 }
 
 VkPipelineColorBlendStateCreateInfo createColorBlendStateInfo(const VkPipelineColorBlendAttachmentState *colorBlendAttachment)

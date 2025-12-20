@@ -25,6 +25,6 @@ VkPipelineViewportStateCreateInfo createViewportStateInfo(const SwapChainObjects
 VkPipelineViewportStateCreateInfo createViewportStateInfo(VkViewport viewport, VkRect2D scissor);                   // used for viewports of any scale
 VkPipelineRasterizationStateCreateInfo createRasterizationStateInfo(VkPolygonMode drawMode = VK_POLYGON_MODE_FILL); // note: any mode other than fill required a special gpu feature to be enabled
 VkPipelineMultisampleStateCreateInfo createMultisampleStateInfo();                                                  // default to disabled for now
-// eventually, put this here: VkPipelineDepthStencilStateCreateInfo createDepthStencilStateInfo();
+VkPipelineDepthStencilStateCreateInfo createDepthStencilStateInfo();
 VkPipelineColorBlendStateCreateInfo createColorBlendStateInfo(const VkPipelineColorBlendAttachmentState *colorBlendAttachment);
 VkPipelineColorBlendAttachmentState createColorBlendAttachmentInfo(VkBool32 enableBlend); // have false for now until we add semi-transparent objects

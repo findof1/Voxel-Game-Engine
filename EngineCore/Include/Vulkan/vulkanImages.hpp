@@ -11,7 +11,7 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 
 void destroyTextureImage(VkImage textureImage, VkDeviceMemory textureImageMemory, VkDevice device);
 
-VkImageView createImageView(VkImage image, VkFormat format, VkDevice device);
+VkImageView createImageView(VkImage image, VkFormat format, VkDevice device, VkImageAspectFlags aspectFlags);
 void destroyImageView(VkImageView imageView, VkDevice device);
 
 VkSampler createTextureSampler(VkDevice device, VkPhysicalDevice physicalDevice);

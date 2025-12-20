@@ -6,7 +6,7 @@ void createSwapchainFramebuffers(VkRenderPass renderPass, SwapChainObjects &swap
 
   for (size_t i = 0; i < swapChainObjects.swapChainImageViews.size(); i++)
   {
-    std::vector<VkImageView> attachments = {swapChainObjects.swapChainImageViews[i]};
+    std::vector<VkImageView> attachments = {swapChainObjects.swapChainImageViews[i], swapChainObjects.depthImageView};
 
     swapChainObjects.swapChainFramebuffers[i] = createFramebuffer(renderPass, attachments, swapChainObjects.swapChainExtent, device);
   }
@@ -27,7 +27,7 @@ VkFramebuffer createFramebuffer(VkRenderPass renderPass, const std::vector<VkIma
   framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
   framebufferInfo.renderPass = renderPass;
   framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-  ;
+
   framebufferInfo.pAttachments = attachments.data();
   framebufferInfo.width = extent.width;
   framebufferInfo.height = extent.height;

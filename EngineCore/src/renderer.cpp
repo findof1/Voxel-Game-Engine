@@ -1,13 +1,49 @@
 #include "renderer.hpp"
 
 const std::vector<Vertex> vertices = {
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}};
+    // Front (+Z)
+    {{-0.5f, -0.5f, 0.5f}, {1, 0, 0}, {0, 0}},
+    {{0.5f, -0.5f, 0.5f}, {1, 0, 0}, {1, 0}},
+    {{0.5f, 0.5f, 0.5f}, {1, 0, 0}, {1, 1}},
+    {{-0.5f, 0.5f, 0.5f}, {1, 0, 0}, {0, 1}},
+
+    // Back (-Z)
+    {{0.5f, -0.5f, -0.5f}, {0, 1, 0}, {0, 0}},
+    {{-0.5f, -0.5f, -0.5f}, {0, 1, 0}, {1, 0}},
+    {{-0.5f, 0.5f, -0.5f}, {0, 1, 0}, {1, 1}},
+    {{0.5f, 0.5f, -0.5f}, {0, 1, 0}, {0, 1}},
+
+    // Left (-X)
+    {{-0.5f, -0.5f, -0.5f}, {0, 0, 1}, {0, 0}},
+    {{-0.5f, -0.5f, 0.5f}, {0, 0, 1}, {1, 0}},
+    {{-0.5f, 0.5f, 0.5f}, {0, 0, 1}, {1, 1}},
+    {{-0.5f, 0.5f, -0.5f}, {0, 0, 1}, {0, 1}},
+
+    // Right (+X)
+    {{0.5f, -0.5f, 0.5f}, {1, 1, 0}, {0, 0}},
+    {{0.5f, -0.5f, -0.5f}, {1, 1, 0}, {1, 0}},
+    {{0.5f, 0.5f, -0.5f}, {1, 1, 0}, {1, 1}},
+    {{0.5f, 0.5f, 0.5f}, {1, 1, 0}, {0, 1}},
+
+    // Top (+Y)
+    {{-0.5f, 0.5f, 0.5f}, {0, 1, 1}, {0, 0}},
+    {{0.5f, 0.5f, 0.5f}, {0, 1, 1}, {1, 0}},
+    {{0.5f, 0.5f, -0.5f}, {0, 1, 1}, {1, 1}},
+    {{-0.5f, 0.5f, -0.5f}, {0, 1, 1}, {0, 1}},
+
+    // Bottom (-Y)
+    {{-0.5f, -0.5f, -0.5f}, {1, 0, 1}, {0, 0}},
+    {{0.5f, -0.5f, -0.5f}, {1, 0, 1}, {1, 0}},
+    {{0.5f, -0.5f, 0.5f}, {1, 0, 1}, {1, 1}},
+    {{-0.5f, -0.5f, 0.5f}, {1, 0, 1}, {0, 1}}};
 
 const std::vector<uint16_t> indices = {
-    0, 1, 2, 2, 3, 0};
+    0, 1, 2, 2, 3, 0,
+    4, 5, 6, 6, 7, 4,
+    8, 9, 10, 10, 11, 8,
+    12, 13, 14, 14, 15, 12,
+    16, 17, 18, 18, 19, 16,
+    20, 21, 22, 22, 23, 20};
 
 Renderer::Renderer(GLFWwindow *window) : window(window)
 {
@@ -23,13 +59,14 @@ void Renderer::init()
   presentQueue = createPresentQueue(surface, device, physicalDevice);
   swapChainObjects = createSwapChain(device, physicalDevice, surface, window);
   createImageViews(swapChainObjects, device);
-  renderPass = createRenderPass(swapChainObjects, device);
+  renderPass = createRenderPass(swapChainObjects, device, physicalDevice);
   descriptorSetLayout = createDescriptorSetLayout(device);
   pipelineLayout = createPipelineLayout(descriptorSetLayout, device);
   pipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/vert.spv", "shaders/frag.spv");
-  createSwapchainFramebuffers(renderPass, swapChainObjects, device);
   commandPool = createCommandPool(device, physicalDevice, surface, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   commandBuffers = createCommandBuffers(commandPool, device, MAX_FRAMES_IN_FLIGHT);
+  createDepthResources(swapChainObjects, commandPool, graphicsQueue, device, physicalDevice);
+  createSwapchainFramebuffers(renderPass, swapChainObjects, device);
   descriptorPool = createDescriptorPool(device);
 
   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -47,7 +84,7 @@ void Renderer::init()
   }
 
   createTextureImage(textureImage, textureImageMemory, "Assets/textures/wood.png", commandPool, graphicsQueue, device, physicalDevice);
-  textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, device);
+  textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT);
   textureSampler = createTextureSampler(device, physicalDevice);
   createVertexBuffer(vertexBufferMemory, vertexBuffer, vertices, commandPool, graphicsQueue, device, physicalDevice);
   createIndexBuffer(indexBufferMemory, indexBuffer, indices, commandPool, graphicsQueue, device, physicalDevice);
@@ -63,7 +100,7 @@ void Renderer::drawFrame()
   VkResult result = acquireNextImageIndex(imageIndex, imageAvailableSemaphores[currentFrame], swapChainObjects.swapChain, device);
   if (result == VK_ERROR_OUT_OF_DATE_KHR)
   {
-    recreateSwapChain(renderPass, swapChainObjects, device, physicalDevice, surface, window);
+    recreateSwapChain(commandPool, graphicsQueue, renderPass, swapChainObjects, device, physicalDevice, surface, window);
     return; // stop drawing the frame if the swapchain is out of date
   }
   else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -88,7 +125,7 @@ void Renderer::drawFrame()
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
   {
-    recreateSwapChain(renderPass, swapChainObjects, device, physicalDevice, surface, window);
+    recreateSwapChain(commandPool, graphicsQueue, renderPass, swapChainObjects, device, physicalDevice, surface, window);
   }
   else if (result != VK_SUCCESS)
   {
