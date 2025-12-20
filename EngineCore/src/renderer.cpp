@@ -1,10 +1,10 @@
 #include "renderer.hpp"
 
 const std::vector<Vertex> vertices = {
-    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}};
 
 const std::vector<uint16_t> indices = {
     0, 1, 2, 2, 3, 0};
@@ -24,11 +24,13 @@ void Renderer::init()
   swapChainObjects = createSwapChain(device, physicalDevice, surface, window);
   createImageViews(swapChainObjects, device);
   renderPass = createRenderPass(swapChainObjects, device);
-  pipelineLayout = createPipelineLayout(device);
+  descriptorSetLayout = createDescriptorSetLayout(device);
+  pipelineLayout = createPipelineLayout(descriptorSetLayout, device);
   pipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/vert.spv", "shaders/frag.spv");
   createSwapchainFramebuffers(renderPass, swapChainObjects, device);
   commandPool = createCommandPool(device, physicalDevice, surface, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   commandBuffers = createCommandBuffers(commandPool, device, MAX_FRAMES_IN_FLIGHT);
+  descriptorPool = createDescriptorPool(device);
 
   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -44,8 +46,13 @@ void Renderer::init()
     renderFinishedSemaphores[i] = createSemaphore(device);
   }
 
+  createTextureImage(textureImage, textureImageMemory, "Assets/textures/wood.png", commandPool, graphicsQueue, device, physicalDevice);
+  textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, device);
+  textureSampler = createTextureSampler(device, physicalDevice);
   createVertexBuffer(vertexBufferMemory, vertexBuffer, vertices, commandPool, graphicsQueue, device, physicalDevice);
   createIndexBuffer(indexBufferMemory, indexBuffer, indices, commandPool, graphicsQueue, device, physicalDevice);
+  createUniformBuffers(uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, device, physicalDevice);
+  createDescriptorSets(descriptorSets, uniformBuffers, textureImageView, textureSampler, descriptorPool, descriptorSetLayout, device);
 }
 
 void Renderer::drawFrame()
@@ -103,6 +110,8 @@ void Renderer::startRendering(uint32_t imageIndex)
 
 void Renderer::drawObjects()
 {
+  updateUniformBuffer(uniformBuffersMapped, currentFrame, swapChainObjects.swapChainExtent);
+
   bindGraphicsPipeline(commandBuffers[currentFrame], pipeline);
 
   VkViewport viewport = makeViewport(swapChainObjects.swapChainExtent);
@@ -113,6 +122,7 @@ void Renderer::drawObjects()
 
   bindVertexBuffer(vertexBuffer, commandBuffers[currentFrame]);
   bindIndexBuffer(indexBuffer, commandBuffers[currentFrame]);
+  bindDescriptorSets(descriptorSets[currentFrame], commandBuffers[currentFrame], pipelineLayout);
   drawIndexed(commandBuffers[currentFrame], indices.size());
 }
 
@@ -149,6 +159,12 @@ void Renderer::cleanup()
     destroySemaphore(semaphore, device);
   }
 
+  destroyTextureSampler(textureSampler, device);
+  destroyImageView(textureImageView, device);
+  destroyTextureImage(textureImage, textureImageMemory, device);
+  destroyUniformBuffers(uniformBuffers, uniformBuffersMemory, device);
+  destroyDescriptorPool(descriptorPool, device);
+  destroyDescriptorSetLayout(descriptorSetLayout, device);
   destroyCommandPool(commandPool, device);
   destroyPipeline(pipeline, device);
   destroyPipelineLayout(pipelineLayout, device);

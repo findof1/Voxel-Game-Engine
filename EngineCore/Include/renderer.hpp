@@ -14,6 +14,8 @@
 #include "vulkanDrawing.hpp"
 #include "vulkanBufferObjects.hpp"
 #include "vulkanBufferUtils.hpp"
+#include "vulkanDescriptors.hpp"
+#include "vulkanImages.hpp"
 
 const std::vector<const char *> validationLayers = {
     "VK_LAYER_KHRONOS_validation"};
@@ -45,6 +47,8 @@ public:
   VkQueue presentQueue;
   SwapChainObjects swapChainObjects;
   VkRenderPass renderPass;
+  VkDescriptorSetLayout descriptorSetLayout;
+  VkDescriptorPool descriptorPool;
   VkPipelineLayout pipelineLayout;
   VkPipeline pipeline;
   VkCommandPool commandPool;
@@ -58,6 +62,16 @@ public:
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
+
+  std::vector<VkBuffer> uniformBuffers;
+  std::vector<VkDeviceMemory> uniformBuffersMemory;
+  std::vector<void *> uniformBuffersMapped;
+  std::vector<VkDescriptorSet> descriptorSets;
+
+  VkImage textureImage;
+  VkDeviceMemory textureImageMemory;
+  VkImageView textureImageView;
+  VkSampler textureSampler;
 
   // counts between 0 and MAX_FRAMES_IN_FLIGHT and then resets to 0 using (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT at the end of each frame
   uint32_t currentFrame = 0;

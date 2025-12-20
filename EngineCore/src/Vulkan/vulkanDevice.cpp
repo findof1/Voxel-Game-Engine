@@ -73,6 +73,8 @@ VkDevice createLogicalDevice(VkSurfaceKHR surface, VkPhysicalDevice physicalDevi
   }
 
   VkPhysicalDeviceFeatures deviceFeatures{};
+  deviceFeatures.samplerAnisotropy = VK_TRUE;
+
   VkDeviceCreateInfo createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
   createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
@@ -136,8 +138,11 @@ int rateDeviceSuitability(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice)
     swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
   }
 
+  VkPhysicalDeviceFeatures supportedFeatures;
+  vkGetPhysicalDeviceFeatures(physicalDevice, &supportedFeatures);
+
   QueueFamilyIndices indices = findQueueFamilies(surface, physicalDevice);
-  if (!indices.isComplete() || !extensionsSupported || !swapChainAdequate)
+  if (!indices.isComplete() || !extensionsSupported || !swapChainAdequate || !supportedFeatures.samplerAnisotropy)
   {
     score = 0; // not a usable gpu
   }

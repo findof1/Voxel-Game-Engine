@@ -14,7 +14,7 @@ void bindGraphicsPipeline(VkCommandBuffer commandBuffer, VkPipeline pipeline);
 VkShaderModule createShaderModule(VkDevice device, const std::vector<char> &code);
 void destroyShaderModule(VkShaderModule shaderModule, VkDevice device);
 
-VkPipelineLayout createPipelineLayout(VkDevice device);
+VkPipelineLayout createPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, VkDevice device);
 void destroyPipelineLayout(VkPipelineLayout pipelineLayout, VkDevice device);
 
 VkPipelineShaderStageCreateInfo createShaderStageInfo(VkShaderModule shaderModule, VkShaderStageFlagBits stage);

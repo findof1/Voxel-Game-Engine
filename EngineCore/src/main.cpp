@@ -11,6 +11,9 @@
 #include <GLFW/glfw3.h>
 #endif
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include "application.hpp"
 
 int main()
