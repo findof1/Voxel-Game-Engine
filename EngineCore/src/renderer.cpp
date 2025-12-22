@@ -1,50 +1,5 @@
 #include "renderer.hpp"
 
-const std::vector<Vertex> vertices = {
-    // Front (+Z)
-    {{-0.5f, -0.5f, 0.5f}, {1, 0, 0}, {0, 0}},
-    {{0.5f, -0.5f, 0.5f}, {1, 0, 0}, {1, 0}},
-    {{0.5f, 0.5f, 0.5f}, {1, 0, 0}, {1, 1}},
-    {{-0.5f, 0.5f, 0.5f}, {1, 0, 0}, {0, 1}},
-
-    // Back (-Z)
-    {{0.5f, -0.5f, -0.5f}, {0, 1, 0}, {0, 0}},
-    {{-0.5f, -0.5f, -0.5f}, {0, 1, 0}, {1, 0}},
-    {{-0.5f, 0.5f, -0.5f}, {0, 1, 0}, {1, 1}},
-    {{0.5f, 0.5f, -0.5f}, {0, 1, 0}, {0, 1}},
-
-    // Left (-X)
-    {{-0.5f, -0.5f, -0.5f}, {0, 0, 1}, {0, 0}},
-    {{-0.5f, -0.5f, 0.5f}, {0, 0, 1}, {1, 0}},
-    {{-0.5f, 0.5f, 0.5f}, {0, 0, 1}, {1, 1}},
-    {{-0.5f, 0.5f, -0.5f}, {0, 0, 1}, {0, 1}},
-
-    // Right (+X)
-    {{0.5f, -0.5f, 0.5f}, {1, 1, 0}, {0, 0}},
-    {{0.5f, -0.5f, -0.5f}, {1, 1, 0}, {1, 0}},
-    {{0.5f, 0.5f, -0.5f}, {1, 1, 0}, {1, 1}},
-    {{0.5f, 0.5f, 0.5f}, {1, 1, 0}, {0, 1}},
-
-    // Top (+Y)
-    {{-0.5f, 0.5f, 0.5f}, {0, 1, 1}, {0, 0}},
-    {{0.5f, 0.5f, 0.5f}, {0, 1, 1}, {1, 0}},
-    {{0.5f, 0.5f, -0.5f}, {0, 1, 1}, {1, 1}},
-    {{-0.5f, 0.5f, -0.5f}, {0, 1, 1}, {0, 1}},
-
-    // Bottom (-Y)
-    {{-0.5f, -0.5f, -0.5f}, {1, 0, 1}, {0, 0}},
-    {{0.5f, -0.5f, -0.5f}, {1, 0, 1}, {1, 0}},
-    {{0.5f, -0.5f, 0.5f}, {1, 0, 1}, {1, 1}},
-    {{-0.5f, -0.5f, 0.5f}, {1, 0, 1}, {0, 1}}};
-
-const std::vector<uint16_t> indices = {
-    0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4,
-    8, 9, 10, 10, 11, 8,
-    12, 13, 14, 14, 15, 12,
-    16, 17, 18, 18, 19, 16,
-    20, 21, 22, 22, 23, 20};
-
 Renderer::Renderer(GLFWwindow *window) : window(window)
 {
 }
@@ -86,17 +41,12 @@ void Renderer::init()
   createTextureImage(textureImage, textureImageMemory, "Assets/textures/wood.png", commandPool, graphicsQueue, device, physicalDevice);
   textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT);
   textureSampler = createTextureSampler(device, physicalDevice);
-  createVertexBuffer(vertexBufferMemory, vertexBuffer, vertices, commandPool, graphicsQueue, device, physicalDevice);
-  createIndexBuffer(indexBufferMemory, indexBuffer, indices, commandPool, graphicsQueue, device, physicalDevice);
-  createUniformBuffers(uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, device, physicalDevice);
-  createDescriptorSets(descriptorSets, uniformBuffers, textureImageView, textureSampler, descriptorPool, descriptorSetLayout, device);
 }
 
-void Renderer::drawFrame()
+void Renderer::startFrame()
 {
   waitForFence(inFlightFences[currentFrame], device);
 
-  uint32_t imageIndex;
   VkResult result = acquireNextImageIndex(imageIndex, imageAvailableSemaphores[currentFrame], swapChainObjects.swapChain, device);
   if (result == VK_ERROR_OUT_OF_DATE_KHR)
   {
@@ -116,12 +66,15 @@ void Renderer::drawFrame()
   resetCommandBuffer(commandBuffers[currentFrame]);
 
   startRendering(imageIndex);
-  drawObjects();
+}
+
+void Renderer::endFrame()
+{
   endRendering();
 
   submitFrame(imageAvailableSemaphores[currentFrame], VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, renderFinishedSemaphores[imageIndex], inFlightFences[currentFrame], commandBuffers[currentFrame], graphicsQueue);
 
-  result = presentFrame(imageIndex, renderFinishedSemaphores[imageIndex], swapChainObjects.swapChain, presentQueue);
+  VkResult result = presentFrame(imageIndex, renderFinishedSemaphores[imageIndex], swapChainObjects.swapChain, presentQueue);
 
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
   {
@@ -145,41 +98,15 @@ void Renderer::startRendering(uint32_t imageIndex)
   beginRenderPass(commandBuffers[currentFrame], swapChainObjects.swapChainFramebuffers[imageIndex], renderPass, swapChainObjects.swapChainExtent);
 }
 
-void Renderer::drawObjects()
-{
-  updateUniformBuffer(uniformBuffersMapped, currentFrame, swapChainObjects.swapChainExtent);
-
-  bindGraphicsPipeline(commandBuffers[currentFrame], pipeline);
-
-  VkViewport viewport = makeViewport(swapChainObjects.swapChainExtent);
-  setViewport(commandBuffers[currentFrame], viewport);
-
-  VkRect2D scissor = makeScissor(swapChainObjects.swapChainExtent);
-  setScissor(commandBuffers[currentFrame], scissor);
-
-  bindVertexBuffer(vertexBuffer, commandBuffers[currentFrame]);
-  bindIndexBuffer(indexBuffer, commandBuffers[currentFrame]);
-  bindDescriptorSets(descriptorSets[currentFrame], commandBuffers[currentFrame], pipelineLayout);
-  drawIndexed(commandBuffers[currentFrame], indices.size());
-}
-
 void Renderer::endRendering()
 {
   endRenderPass(commandBuffers[currentFrame]);
   endCommandBuffer(commandBuffers[currentFrame]);
 }
 
-Renderer::~Renderer()
-{
-  cleanup();
-}
-
 void Renderer::cleanup()
 {
   vkDeviceWaitIdle(device);
-
-  destroyBuffer(vertexBufferMemory, vertexBuffer, device);
-  destroyBuffer(indexBufferMemory, indexBuffer, device);
 
   for (auto fence : inFlightFences)
   {
@@ -199,7 +126,6 @@ void Renderer::cleanup()
   destroyTextureSampler(textureSampler, device);
   destroyImageView(textureImageView, device);
   destroyTextureImage(textureImage, textureImageMemory, device);
-  destroyUniformBuffers(uniformBuffers, uniformBuffersMemory, device);
   destroyDescriptorPool(descriptorPool, device);
   destroyDescriptorSetLayout(descriptorSetLayout, device);
   destroyCommandPool(commandPool, device);

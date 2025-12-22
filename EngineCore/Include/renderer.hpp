@@ -58,16 +58,6 @@ public:
   std::vector<VkSemaphore> renderFinishedSemaphores;
   std::vector<VkFence> inFlightFences;
 
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
-  VkBuffer indexBuffer;
-  VkDeviceMemory indexBufferMemory;
-
-  std::vector<VkBuffer> uniformBuffers;
-  std::vector<VkDeviceMemory> uniformBuffersMemory;
-  std::vector<void *> uniformBuffersMapped;
-  std::vector<VkDescriptorSet> descriptorSets;
-
   VkImage textureImage;
   VkDeviceMemory textureImageMemory;
   VkImageView textureImageView;
@@ -79,12 +69,12 @@ public:
 
   Renderer(GLFWwindow *window);
   void init();
-  void drawFrame();
+  void startFrame();
+  void endFrame();
   void startRendering(uint32_t imageIndex);
-  void drawObjects();
   void endRendering();
-  ~Renderer();
+  void cleanup();
 
 private:
-  void cleanup();
+  uint32_t imageIndex;
 };

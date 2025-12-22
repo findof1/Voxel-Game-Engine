@@ -23,6 +23,7 @@ include_directories(
     "C:/msys64/mingw64/include/glm"
     "${CMAKE_SOURCE_DIR}/External"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include"
+    "${CMAKE_SOURCE_DIR}/EngineCore/Include/ECS"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include/Vulkan"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include/Utils"
     "${CMAKE_SOURCE_DIR}/External/imgui"
@@ -47,6 +48,7 @@ target_link_libraries(GameEngine
     freetype
     LinearMath
     ws2_32
+    assimp
 )
 
 add_custom_command(TARGET GameEngine POST_BUILD

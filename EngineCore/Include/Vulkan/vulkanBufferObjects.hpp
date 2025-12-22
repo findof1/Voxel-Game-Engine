@@ -19,5 +19,3 @@ void bindIndexBuffer(VkBuffer indexBuffer, VkCommandBuffer commandBuffer);
 
 void createUniformBuffers(std::vector<VkBuffer> &uniformBuffers, std::vector<VkDeviceMemory> &uniformBuffersMemory, std::vector<void *> &uniformBuffersMapped, VkDevice device, VkPhysicalDevice physicalDevice);
 void destroyUniformBuffers(std::vector<VkBuffer> &uniformBuffers, std::vector<VkDeviceMemory> &uniformBuffersMemory, VkDevice device);
-
-void updateUniformBuffer(std::vector<void *> &uniformBuffersMapped, uint32_t currentImage, VkExtent2D swapChainExtent);

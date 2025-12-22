@@ -11,6 +11,25 @@ void framebufferResizeCallback(GLFWwindow *window, int width, int height)
   app->renderer.framebufferResized = true;
 }
 
+void mouse_callback(GLFWwindow *window, double xpos, double ypos)
+{
+  auto app = reinterpret_cast<Application *>(glfwGetWindowUserPointer(window));
+  if (app->firstMouse)
+  {
+    app->lastX = (float)xpos;
+    app->lastY = (float)ypos;
+    app->firstMouse = false;
+  }
+
+  float xoffset = (float)xpos - app->lastX;
+  float yoffset = app->lastY - (float)ypos;
+
+  app->lastX = (float)xpos;
+  app->lastY = (float)ypos;
+
+  app->camera.processMouseMovement(xoffset, -yoffset);
+}
+
 GLFWwindow *initWindow(const int w, const int h, std::string windowName, void *userPointer)
 {
   if (!glfwInit())
@@ -33,6 +52,9 @@ GLFWwindow *initWindow(const int w, const int h, std::string windowName, void *u
   {
     glfwSetWindowUserPointer(window, userPointer);
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   }
 
   return window;

@@ -90,7 +90,7 @@ void recreateSwapChain(VkCommandPool commandPool, VkQueue graphicsQueue, VkRende
 
   SwapChainObjects newSwapChainObjects = createSwapChain(device, physicalDevice, surface, window);
   createImageViews(newSwapChainObjects, device);
-  createDepthResources(swapChainObjects, commandPool, graphicsQueue, device, physicalDevice);
+  createDepthResources(newSwapChainObjects, commandPool, graphicsQueue, device, physicalDevice);
   createSwapchainFramebuffers(renderPass, newSwapChainObjects, device);
 
   swapChainObjects = newSwapChainObjects;
