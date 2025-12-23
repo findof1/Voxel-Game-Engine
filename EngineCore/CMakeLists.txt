@@ -24,6 +24,7 @@ include_directories(
     "${CMAKE_SOURCE_DIR}/External"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include/ECS"
+    "${CMAKE_SOURCE_DIR}/EngineCore/Include/Voxels"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include/Vulkan"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include/Utils"
     "${CMAKE_SOURCE_DIR}/External/imgui"

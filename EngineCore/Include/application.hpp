@@ -8,6 +8,10 @@
 #include "coordinator.hpp"
 #include "entityManager.hpp"
 #include "renderSystem.hpp"
+#include "mesh.hpp"
+#include "modelLoading.hpp"
+#include "Voxels/components.hpp"
+#include "voxelSystem.hpp"
 
 class Application
 {
@@ -19,6 +23,7 @@ public:
   Camera camera;
 
   std::shared_ptr<Coordinator> coordinator;
+  std::shared_ptr<VoxelSystem> voxelSystem;
   std::shared_ptr<RenderSystem> renderSystem;
 
   float lastX = 800.0f / 2.0f;

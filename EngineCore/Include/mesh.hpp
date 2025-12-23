@@ -3,8 +3,8 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <cstdint>
+#include "vertexData.hpp"
 
-struct Vertex;
 struct UniformBufferObject;
 class Renderer;
 class Mesh

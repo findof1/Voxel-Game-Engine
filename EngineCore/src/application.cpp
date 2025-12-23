@@ -1,7 +1,6 @@
 #include "application.hpp"
 #include <chrono>
 #include <iostream>
-#include "mesh.hpp"
 
 const std::vector<Vertex> vertices = {
     // Front (+Z)
@@ -88,6 +87,8 @@ void Application::run()
   coordinator->RegisterComponent<MeshComponent>();
   coordinator->RegisterComponent<Parent>();
   coordinator->RegisterComponent<Children>();
+  coordinator->RegisterComponent<ChunkComponent>();
+  coordinator->RegisterComponent<WorldComponent>();
 
   // Register and configure render system
   renderSystem = coordinator->RegisterSystem<RenderSystem>();
@@ -97,6 +98,53 @@ void Application::run()
     coordinator->SetSystemSignature<RenderSystem>(signature);
   }
   renderSystem->Init(coordinator, windowWidth, windowHeight);
+
+  // Create a world entity
+  Entity world = coordinator->CreateEntity();
+  {
+    WorldComponent worldComponent{};
+    worldComponent.chunkHeight = 16;
+    worldComponent.chunkWidth = 16;
+    worldComponent.chunkLength = 16;
+    worldComponent.renderRadius = 4;
+    worldComponent.simulationRadius = 4;
+    worldComponent.seed = 21;
+    coordinator->AddComponent(world, worldComponent);
+  }
+  WorldComponent &worldComp = coordinator->GetComponent<WorldComponent>(world);
+
+  voxelSystem = coordinator->RegisterSystem<VoxelSystem>(worldComp);
+  {
+    Signature signature;
+    signature.set(coordinator->GetComponentType<WorldComponent>());
+    signature.set(coordinator->GetComponentType<ChunkComponent>());
+    coordinator->SetSystemSignature<VoxelSystem>(signature);
+  }
+  voxelSystem->Init(coordinator);
+
+  auto addBlock = [&](const std::string &name, int top, int bottom, int side, int visible = true)
+  {
+    uint32_t id = worldComp.registry.blocks.size();
+    BlockType block;
+    block.name = name;
+    block.visible = visible;
+    block.textureTop = top;
+    block.textureBottom = bottom;
+    block.textureSide = side;
+
+    worldComp.registry.blocks.push_back(block);
+    worldComp.registry.nameToId[name] = id;
+  };
+
+  addBlock("Air", -1, -1, -1, false);
+
+  addBlock("Grass", 0, 2, 1);
+
+  addBlock("Dirt", 2, 2, 2);
+
+  addBlock("Stone", 3, 3, 3);
+
+  addBlock("Sand", 4, 4, 4);
 
   // Create a cube entity
   {
@@ -108,6 +156,16 @@ void Application::run()
     auto mesh = std::make_shared<Mesh>(renderer);
     mesh->Init(vertices, indices);
     coordinator->AddComponent(cube, MeshComponent{mesh});
+  }
+
+  // Create a vase entity by loading a obj
+  {
+    Entity vase = coordinator->CreateEntity();
+    TransformComponent vaseTransform{};
+    vaseTransform.translation = {0.0f, 0.0f, 15.0f};
+    vaseTransform.scale = {1.0f, 1.0f, 1.0f};
+    coordinator->AddComponent(vase, vaseTransform);
+    LoadModel(vase, coordinator, renderer, "Assets/models/smooth_vase.obj");
   }
 
   mainLoop();
@@ -141,7 +199,7 @@ void Application::mainLoop()
 
     glfwPollEvents();
     processInput(window, dt, camera);
-
+    voxelSystem->Update(dt, glm::vec3(0));
     renderSystem->Update(renderer, dt, camera);
   }
 }
@@ -152,9 +210,12 @@ void Application::cleanup()
 
   for (auto &entity : renderSystem->mEntities)
   {
+    if (!coordinator->HasComponent<MeshComponent>(entity))
+    {
+      continue;
+    }
     auto &meshComponent = coordinator->GetComponent<MeshComponent>(entity);
-    if (meshComponent.mesh)
-      meshComponent.mesh->Cleanup();
+    meshComponent.mesh->Cleanup();
   }
 
   renderSystem.reset();
