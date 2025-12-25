@@ -12,6 +12,7 @@
 #include "modelLoading.hpp"
 #include "Voxels/components.hpp"
 #include "voxelSystem.hpp"
+#include "meshingSystem.hpp"
 
 class Application
 {
@@ -24,6 +25,7 @@ public:
 
   std::shared_ptr<Coordinator> coordinator;
   std::shared_ptr<VoxelSystem> voxelSystem;
+  std::shared_ptr<MeshingSystem> meshingSystem;
   std::shared_ptr<RenderSystem> renderSystem;
 
   float lastX = 800.0f / 2.0f;

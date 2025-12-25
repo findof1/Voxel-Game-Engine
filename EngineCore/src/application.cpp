@@ -106,8 +106,8 @@ void Application::run()
     worldComponent.chunkHeight = 16;
     worldComponent.chunkWidth = 16;
     worldComponent.chunkLength = 16;
-    worldComponent.renderRadius = 4;
-    worldComponent.simulationRadius = 4;
+    worldComponent.renderRadius = 1;
+    worldComponent.simulationRadius = 1;
     worldComponent.seed = 21;
     coordinator->AddComponent(world, worldComponent);
   }
@@ -121,6 +121,14 @@ void Application::run()
     coordinator->SetSystemSignature<VoxelSystem>(signature);
   }
   voxelSystem->Init(coordinator);
+
+  meshingSystem = coordinator->RegisterSystem<MeshingSystem>(worldComp);
+  {
+    Signature signature;
+    signature.set(coordinator->GetComponentType<ChunkComponent>());
+    coordinator->SetSystemSignature<MeshingSystem>(signature);
+  }
+  meshingSystem->Init(coordinator);
 
   auto addBlock = [&](const std::string &name, int top, int bottom, int side, int visible = true)
   {
@@ -200,6 +208,7 @@ void Application::mainLoop()
     glfwPollEvents();
     processInput(window, dt, camera);
     voxelSystem->Update(dt, glm::vec3(0));
+    meshingSystem->Update(renderer);
     renderSystem->Update(renderer, dt, camera);
   }
 }

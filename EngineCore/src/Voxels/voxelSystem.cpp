@@ -94,7 +94,7 @@ void VoxelSystem::GenerateVoxelData(Entity chunk) // World Generation Logic
   chunkComp.voxelData.resize(world.chunkWidth * world.chunkHeight * world.chunkLength);
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> heightDist(1, world.chunkHeight / 2);
+  std::uniform_int_distribution<> heightDist(12, 16);
 
   for (int x = 0; x < world.chunkWidth; x++)
   {
@@ -104,10 +104,10 @@ void VoxelSystem::GenerateVoxelData(Entity chunk) // World Generation Logic
 
       for (int y = 0; y < world.chunkHeight; y++)
       {
-        if (y <= terrainHeight)
-          chunkComp.voxelData[getIndex(x, y, z)] = {world.registry.nameToId.at("Stone")};
+        if (y + world.chunkHeight * chunkComp.worldPosition.y <= terrainHeight)
+          chunkComp.voxelData[getIndex(x, world.chunkHeight - y - 1, z)] = {world.registry.nameToId.at("Stone")};
         else
-          chunkComp.voxelData[getIndex(x, y, z)] = {world.registry.nameToId.at("Air")};
+          chunkComp.voxelData[getIndex(x, world.chunkHeight - y - 1, z)] = {world.registry.nameToId.at("Air")};
       }
     }
   }

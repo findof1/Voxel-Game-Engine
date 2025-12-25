@@ -15,10 +15,15 @@ class MeshingSystem : public System
 public:
   std::shared_ptr<Coordinator> gCoordinator;
 
-  void Init(std::shared_ptr<Coordinator> coordinator);
-  void Update();
+  MeshingSystem(WorldComponent &world) : world(world)
+  {
+  }
 
-  void CreateMesh(Entity chunk);
+  void Init(std::shared_ptr<Coordinator> coordinator);
+  void Update(Renderer &renderer);
+
+  void CreateMesh(Renderer &renderer, Entity chunk);
 
 private:
+  WorldComponent &world;
 };

@@ -113,16 +113,18 @@ VkInstance createInstance(GLFWwindow *window)
     requiredExtensions.emplace_back(glfwExtensions[i]);
   }
 
+#ifdef __APPLE__
   requiredExtensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-
   createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
 
   createInfo.enabledExtensionCount = (uint32_t)requiredExtensions.size();
   createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
-  if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+  auto res = vkCreateInstance(&createInfo, nullptr, &instance);
+  if (res != VK_SUCCESS)
   {
-    std::cerr << "Failed to create Vulkan instance" << std::endl;
+    std::cerr << "Failed to create Vulkan instance. Error: " << res << std::endl;
     glfwDestroyWindow(window);
     glfwTerminate();
     std::cerr << "Press Enter to exit..." << std::endl;

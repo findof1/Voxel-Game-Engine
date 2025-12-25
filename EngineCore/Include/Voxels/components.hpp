@@ -28,8 +28,6 @@ enum class ChunkState
     Clean,
     NeedsMeshing,
     Meshing,
-    NeedsUpload,
-    Ready
 };
 
 struct ChunkComponent // turns an entity into a voxel chunk
