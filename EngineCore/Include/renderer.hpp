@@ -63,6 +63,11 @@ public:
   VkImageView textureImageView;
   VkSampler textureSampler;
 
+  VkImage textureArrayImage;
+  VkDeviceMemory textureArrayImageMemory;
+  VkImageView textureArrayImageView;
+  VkSampler textureArraySampler;
+
   // counts between 0 and MAX_FRAMES_IN_FLIGHT and then resets to 0 using (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT at the end of each frame
   uint32_t currentFrame = 0;
   bool framebufferResized = false;

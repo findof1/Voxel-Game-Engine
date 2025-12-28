@@ -15,7 +15,13 @@ void Renderer::init()
   swapChainObjects = createSwapChain(device, physicalDevice, surface, window);
   createImageViews(swapChainObjects, device);
   renderPass = createRenderPass(swapChainObjects, device, physicalDevice);
-  descriptorSetLayout = createDescriptorSetLayout(device);
+
+  std::array<VkDescriptorSetLayoutBinding, 2> bindings{
+      uniformBufferBinding(0, VK_SHADER_STAGE_VERTEX_BIT),
+      combinedImageSamplerBinding(1, VK_SHADER_STAGE_FRAGMENT_BIT)};
+
+  descriptorSetLayout = createDescriptorSetLayout(device, bindings);
+
   pipelineLayout = createPipelineLayout(descriptorSetLayout, device);
   pipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/vert.spv", "shaders/frag.spv");
   commandPool = createCommandPool(device, physicalDevice, surface, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -41,6 +47,11 @@ void Renderer::init()
   createTextureImage(textureImage, textureImageMemory, "Assets/textures/wood.png", commandPool, graphicsQueue, device, physicalDevice);
   textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT);
   textureSampler = createTextureSampler(device, physicalDevice);
+
+  const std::vector<std::string> filePaths = {"Assets/textures/wall.png", "Assets/textures/fire.png"};
+  createTextureArrayImage(textureArrayImage, textureArrayImageMemory, filePaths, commandPool, graphicsQueue, device, physicalDevice);
+  textureArrayImageView = createImageView(textureArrayImage, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, filePaths.size());
+  textureArraySampler = createTextureSampler(device, physicalDevice);
 }
 
 void Renderer::startFrame()
@@ -126,6 +137,11 @@ void Renderer::cleanup()
   destroyTextureSampler(textureSampler, device);
   destroyImageView(textureImageView, device);
   destroyTextureImage(textureImage, textureImageMemory, device);
+
+  destroyTextureSampler(textureArraySampler, device);
+  destroyImageView(textureArrayImageView, device);
+  destroyTextureImage(textureArrayImage, textureArrayImageMemory, device);
+
   destroyDescriptorPool(descriptorPool, device);
   destroyDescriptorSetLayout(descriptorSetLayout, device);
   destroyCommandPool(commandPool, device);
