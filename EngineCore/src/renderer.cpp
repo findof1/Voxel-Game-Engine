@@ -43,15 +43,41 @@ void Renderer::init()
   {
     renderFinishedSemaphores[i] = createSemaphore(device);
   }
+}
 
-  createTextureImage(textureImage, textureImageMemory, "Assets/textures/wood.png", commandPool, graphicsQueue, device, physicalDevice);
-  textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT);
-  textureSampler = createTextureSampler(device, physicalDevice);
+Texture Renderer::createTexutre(const std::string &name, const std::string &filePath)
+{
+  Texture texture;
+  createTextureImage(texture.image, texture.memory, filePath, commandPool, graphicsQueue, device, physicalDevice);
+  texture.view = createImageView(texture.image, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT);
+  texture.sampler = createTextureSampler(device, physicalDevice);
 
-  const std::vector<std::string> filePaths = {"Assets/textures/wall.png", "Assets/textures/fire.png"};
-  createTextureArrayImage(textureArrayImage, textureArrayImageMemory, filePaths, commandPool, graphicsQueue, device, physicalDevice);
-  textureArrayImageView = createImageView(textureArrayImage, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, filePaths.size());
-  textureArraySampler = createTextureSampler(device, physicalDevice);
+  textures.emplace(name, texture);
+  return texture;
+}
+
+Texture Renderer::createTexutreArray(const std::string &name, const std::vector<std::string> filePaths)
+{
+  Texture texture;
+  createTextureArrayImage(texture.image, texture.memory, filePaths, commandPool, graphicsQueue, device, physicalDevice);
+  texture.view = createImageView(texture.image, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, filePaths.size());
+  texture.sampler = createTextureSampler(device, physicalDevice);
+
+  textures.emplace(name, texture);
+  return texture;
+}
+
+Texture Renderer::getTexture(const std::string &name)
+{
+  if (textures.find(name) == textures.end())
+  {
+    std::cerr << "getTexture failed with texture name: " << name << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+  return textures.at(name);
 }
 
 void Renderer::startFrame()
@@ -134,13 +160,12 @@ void Renderer::cleanup()
     destroySemaphore(semaphore, device);
   }
 
-  destroyTextureSampler(textureSampler, device);
-  destroyImageView(textureImageView, device);
-  destroyTextureImage(textureImage, textureImageMemory, device);
-
-  destroyTextureSampler(textureArraySampler, device);
-  destroyImageView(textureArrayImageView, device);
-  destroyTextureImage(textureArrayImage, textureArrayImageMemory, device);
+  for (auto [_, tex] : textures)
+  {
+    destroyTextureSampler(tex.sampler, device);
+    destroyImageView(tex.view, device);
+    destroyTextureImage(tex.image, tex.memory, device);
+  }
 
   destroyDescriptorPool(descriptorPool, device);
   destroyDescriptorSetLayout(descriptorSetLayout, device);

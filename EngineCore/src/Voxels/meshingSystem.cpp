@@ -89,7 +89,7 @@ void MeshingSystem::Init(std::shared_ptr<Coordinator> coordinator)
   gCoordinator = coordinator;
 }
 
-void MeshingSystem::Update(Renderer &renderer)
+void MeshingSystem::Update(Texture voxelTextures, Renderer &renderer)
 {
   for (auto &e : mEntities)
   {
@@ -101,13 +101,13 @@ void MeshingSystem::Update(Renderer &renderer)
     auto &chunk = gCoordinator->GetComponent<ChunkComponent>(e);
     if (chunk.chunkState == ChunkState::NeedsMeshing)
     {
-      CreateMesh(renderer, e);
+      CreateMesh(voxelTextures, renderer, e);
       chunk.chunkState = ChunkState::Clean;
     }
   }
 }
 
-void MeshingSystem::CreateMesh(Renderer &renderer, Entity chunkEntity)
+void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity chunkEntity)
 {
   auto &chunk = gCoordinator->GetComponent<ChunkComponent>(chunkEntity);
 
@@ -240,6 +240,6 @@ void MeshingSystem::CreateMesh(Renderer &renderer, Entity chunkEntity)
   chunkTransform.scale = {1.0f, 1.0f, 1.0f};
   gCoordinator->AddComponent(chunkEntity, chunkTransform);
   auto mesh = std::make_shared<Mesh>(renderer);
-  mesh->Init(vertices, indices);
+  mesh->Init(voxelTextures, vertices, indices);
   gCoordinator->AddComponent(chunkEntity, MeshComponent{mesh});
 }

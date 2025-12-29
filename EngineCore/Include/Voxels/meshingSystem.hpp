@@ -20,9 +20,9 @@ public:
   }
 
   void Init(std::shared_ptr<Coordinator> coordinator);
-  void Update(Renderer &renderer);
+  void Update(Texture voxelTextures, Renderer &renderer);
 
-  void CreateMesh(Renderer &renderer, Entity chunk);
+  void CreateMesh(Texture voxelTextures, Renderer &renderer, Entity chunk);
 
 private:
   WorldComponent &world;

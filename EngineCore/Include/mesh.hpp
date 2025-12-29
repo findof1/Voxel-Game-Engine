@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include "vertexData.hpp"
+#include "texture.hpp"
 
 struct UniformBufferObject;
 class Renderer;
@@ -17,7 +18,7 @@ public:
     Cleanup();
   };
 
-  void Init(const std::vector<Vertex> &verts, const std::vector<uint16_t> &inds);
+  void Init(Texture texture, const std::vector<Vertex> &verts, const std::vector<uint16_t> &inds);
 
   void Cleanup();
 

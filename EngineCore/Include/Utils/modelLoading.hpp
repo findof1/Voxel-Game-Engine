@@ -13,8 +13,9 @@
 #include "mesh.hpp"
 #include "entityManager.hpp"
 #include "coordinator.hpp"
+#include "texture.hpp"
 
 glm::mat4 AiToGlmMat(const aiMatrix4x4 &mat);
-std::shared_ptr<Mesh> LoadAiMesh(Renderer &renderer, aiMesh *mesh);
-Entity LoadNodeRecursive(std::shared_ptr<Coordinator> coordinator, Renderer &renderer, aiNode *node, const aiScene *scene, Entity parent = -1);
-void LoadModel(Entity parentEntity, std::shared_ptr<Coordinator> coordinator, Renderer &renderer, const std::string &path);
+std::shared_ptr<Mesh> LoadAiMesh(Renderer &renderer, aiMesh *mesh, Texture texture);
+Entity LoadNodeRecursive(std::shared_ptr<Coordinator> coordinator, Renderer &renderer, aiNode *node, const aiScene *scene, Texture texture, Entity parent = -1);
+void LoadModel(Entity parentEntity, std::shared_ptr<Coordinator> coordinator, Renderer &renderer, Texture texture, const std::string &path);

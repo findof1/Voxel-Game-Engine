@@ -11,7 +11,7 @@ glm::mat4 AiToGlmMat(const aiMatrix4x4 &mat)
       mat.a4, mat.b4, mat.c4, mat.d4);
 }
 
-std::shared_ptr<Mesh> LoadAiMesh(Renderer &renderer, aiMesh *mesh)
+std::shared_ptr<Mesh> LoadAiMesh(Renderer &renderer, aiMesh *mesh, Texture texture)
 {
   std::vector<Vertex> vertices;
   std::vector<uint16_t> indices;
@@ -35,11 +35,11 @@ std::shared_ptr<Mesh> LoadAiMesh(Renderer &renderer, aiMesh *mesh)
   }
 
   auto m = std::make_shared<Mesh>(renderer);
-  m->Init(vertices, indices);
+  m->Init(texture, vertices, indices);
   return m;
 }
 
-Entity LoadNodeRecursive(std::shared_ptr<Coordinator> coordinator, Renderer &renderer, aiNode *node, const aiScene *scene, Entity parent)
+Entity LoadNodeRecursive(std::shared_ptr<Coordinator> coordinator, Renderer &renderer, aiNode *node, const aiScene *scene, Texture texture, Entity parent)
 {
   Entity entity = coordinator->CreateEntity();
 
@@ -67,24 +67,24 @@ Entity LoadNodeRecursive(std::shared_ptr<Coordinator> coordinator, Renderer &ren
   for (unsigned int i = 0; i < node->mNumMeshes; i++)
   {
     aiMesh *aiMesh = scene->mMeshes[node->mMeshes[i]];
-    coordinator->AddComponent(entity, MeshComponent{LoadAiMesh(renderer, aiMesh)});
+    coordinator->AddComponent(entity, MeshComponent{LoadAiMesh(renderer, aiMesh, texture)});
   }
 
   // Recurse
   for (unsigned int i = 0; i < node->mNumChildren; i++)
   {
-    LoadNodeRecursive(coordinator, renderer, node->mChildren[i], scene, entity);
+    LoadNodeRecursive(coordinator, renderer, node->mChildren[i], scene, texture, entity);
   }
 
   return entity;
 }
 
-void LoadModel(Entity parentEntity, std::shared_ptr<Coordinator> coordinator, Renderer &renderer, const std::string &path)
+void LoadModel(Entity parentEntity, std::shared_ptr<Coordinator> coordinator, Renderer &renderer, Texture texture, const std::string &path)
 {
   Assimp::Importer importer;
   const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
   if (!scene || !scene->mRootNode)
     throw std::runtime_error("Failed to load model: " + path);
 
-  LoadNodeRecursive(coordinator, renderer, scene->mRootNode, scene, parentEntity);
+  LoadNodeRecursive(coordinator, renderer, scene->mRootNode, scene, texture, parentEntity);
 }

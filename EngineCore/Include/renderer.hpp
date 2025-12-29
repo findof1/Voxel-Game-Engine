@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
 #include "vulkanInit.hpp"
 #include "vulkanSurface.hpp"
@@ -16,6 +17,8 @@
 #include "vulkanBufferUtils.hpp"
 #include "vulkanDescriptors.hpp"
 #include "vulkanImages.hpp"
+
+#include "texture.hpp"
 
 const std::vector<const char *> validationLayers = {
     "VK_LAYER_KHRONOS_validation"};
@@ -58,19 +61,15 @@ public:
   std::vector<VkSemaphore> renderFinishedSemaphores;
   std::vector<VkFence> inFlightFences;
 
-  VkImage textureImage;
-  VkDeviceMemory textureImageMemory;
-  VkImageView textureImageView;
-  VkSampler textureSampler;
-
-  VkImage textureArrayImage;
-  VkDeviceMemory textureArrayImageMemory;
-  VkImageView textureArrayImageView;
-  VkSampler textureArraySampler;
+  std::unordered_map<std::string, Texture> textures;
 
   // counts between 0 and MAX_FRAMES_IN_FLIGHT and then resets to 0 using (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT at the end of each frame
   uint32_t currentFrame = 0;
   bool framebufferResized = false;
+
+  Texture createTexutre(const std::string &name, const std::string &filePath);
+  Texture createTexutreArray(const std::string &name, const std::vector<std::string> filePaths);
+  Texture getTexture(const std::string &name);
 
   Renderer(GLFWwindow *window);
   void init();

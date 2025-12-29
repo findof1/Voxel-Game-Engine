@@ -154,6 +154,10 @@ void Application::run()
 
   addBlock("Sand", 4, 4, 4);
 
+  Texture wood = renderer.createTexutre("Wood", "Assets/textures/wood.png");
+  std::vector<std::string> filePaths = {"Assets/textures/wall.png", "Assets/textures/fire.png"};
+  renderer.createTexutreArray("Voxel Textures", filePaths);
+
   // Create a cube entity
   {
     Entity cube = coordinator->CreateEntity();
@@ -162,7 +166,7 @@ void Application::run()
     cubeTransform.scale = {1.0f, 1.0f, 1.0f};
     coordinator->AddComponent(cube, cubeTransform);
     auto mesh = std::make_shared<Mesh>(renderer);
-    mesh->Init(vertices, indices);
+    mesh->Init(wood, vertices, indices);
     coordinator->AddComponent(cube, MeshComponent{mesh});
   }
 
@@ -173,7 +177,7 @@ void Application::run()
     vaseTransform.translation = {0.0f, 0.0f, 15.0f};
     vaseTransform.scale = {1.0f, 1.0f, 1.0f};
     coordinator->AddComponent(vase, vaseTransform);
-    LoadModel(vase, coordinator, renderer, "Assets/models/smooth_vase.obj");
+    LoadModel(vase, coordinator, renderer, wood, "Assets/models/smooth_vase.obj");
   }
 
   mainLoop();
@@ -208,7 +212,7 @@ void Application::mainLoop()
     glfwPollEvents();
     processInput(window, dt, camera);
     voxelSystem->Update(dt, glm::vec3(0));
-    meshingSystem->Update(renderer);
+    meshingSystem->Update(renderer.getTexture("Wood"), renderer);
     renderSystem->Update(renderer, dt, camera);
   }
 }

@@ -8,7 +8,7 @@ Mesh::Mesh(Renderer &renderer) : renderer(renderer)
 {
 }
 
-void Mesh::Init(const std::vector<Vertex> &verts, const std::vector<uint16_t> &inds)
+void Mesh::Init(Texture texture, const std::vector<Vertex> &verts, const std::vector<uint16_t> &inds)
 {
   vertices = verts;
   indices = inds;
@@ -19,7 +19,7 @@ void Mesh::Init(const std::vector<Vertex> &verts, const std::vector<uint16_t> &i
 
   createUniformBuffers(uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, renderer.device, renderer.physicalDevice);
 
-  createDescriptorSets(descriptorSets, uniformBuffers, renderer.textureImageView, renderer.textureSampler, renderer.descriptorPool, renderer.descriptorSetLayout, renderer.device);
+  createDescriptorSets(descriptorSets, uniformBuffers, texture.view, texture.sampler, renderer.descriptorPool, renderer.descriptorSetLayout, renderer.device);
 }
 
 void Mesh::Cleanup()
