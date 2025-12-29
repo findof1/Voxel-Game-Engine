@@ -9,7 +9,7 @@
 
 // note: use destroyBuffer to destroy all buffers
 
-void createVertexBuffer(VkDeviceMemory &vertexBufferMemory, VkBuffer &vertexBuffer, const std::vector<Vertex> &vertices, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice);
+void createVertexBuffer(VkDeviceMemory &vertexBufferMemory, VkBuffer &vertexBuffer, VkDeviceSize bufferSize, const void *vertData, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice);
 
 void bindVertexBuffer(VkBuffer vertexBuffer, VkCommandBuffer commandBuffer);
 

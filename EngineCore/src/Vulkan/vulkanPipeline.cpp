@@ -3,7 +3,7 @@
 #include "renderer.hpp"
 #include "vertexData.hpp"
 
-VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass renderPass, const SwapChainObjects &swapChainObjects, VkDevice device, const std::string &vertexShaderPath, const std::string &fragmentShaderPath)
+VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass renderPass, const SwapChainObjects &swapChainObjects, VkDevice device, const std::string &vertexShaderPath, const std::string &fragmentShaderPath, const VkVertexInputBindingDescription *bindingDescription, const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions)
 {
   std::vector<char> vertShaderCode = readFile(vertexShaderPath);
   std::vector<char> fragShaderCode = readFile(fragmentShaderPath);
@@ -16,9 +16,8 @@ VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass 
   VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
   VkPipelineDynamicStateCreateInfo dynamicState = createDynamicStateInfo();
-  auto vertexBinding = Vertex::getBindingDescription();
-  auto vertexAttributes = Vertex::getAttributeDescriptions();
-  VkPipelineVertexInputStateCreateInfo vertexInputInfo = createVertexInputStateInfo(&vertexBinding, vertexAttributes);
+
+  VkPipelineVertexInputStateCreateInfo vertexInputInfo = createVertexInputStateInfo(bindingDescription, attributeDescriptions);
   VkPipelineInputAssemblyStateCreateInfo inputAssembly = createInputAssembleInfo();
   VkPipelineViewportStateCreateInfo viewportState = createViewportStateInfo(swapChainObjects);
   VkPipelineRasterizationStateCreateInfo rasterizer = createRasterizationStateInfo();

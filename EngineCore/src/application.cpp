@@ -1,6 +1,7 @@
 #include "application.hpp"
 #include <chrono>
 #include <iostream>
+#include "voxelMesh.hpp"
 
 const std::vector<Vertex> vertices = {
     // Front (+Z)
@@ -85,6 +86,7 @@ void Application::run()
   // Register components
   coordinator->RegisterComponent<TransformComponent>();
   coordinator->RegisterComponent<MeshComponent>();
+  coordinator->RegisterComponent<VoxelMeshComponent>();
   coordinator->RegisterComponent<Parent>();
   coordinator->RegisterComponent<Children>();
   coordinator->RegisterComponent<ChunkComponent>();
@@ -144,18 +146,31 @@ void Application::run()
     worldComp.registry.nameToId[name] = id;
   };
 
+  std::vector<std::string> filePaths;
+  filePaths.resize(10);
+  filePaths[0] = "Assets/textures/Tiles/dirt.png";
+  filePaths[1] = "Assets/textures/Tiles/dirt_grass.png";
+  filePaths[2] = "Assets/textures/Tiles/grass_top.png";
+  filePaths[3] = "Assets/textures/Tiles/stone.png";
+  filePaths[4] = "Assets/textures/Tiles/sand.png";
+  filePaths[5] = "Assets/textures/Tiles/trunk_side.png";
+  filePaths[6] = "Assets/textures/Tiles/trunk_top.png";
+  filePaths[7] = "Assets/textures/Tiles/leaves.png";
+  filePaths[8] = "Assets/textures/Tiles/redsand.png";
+  filePaths[9] = "Assets/textures/Tiles/snow.png";
+
   addBlock("Air", -1, -1, -1, false);
-
-  addBlock("Grass", 0, 2, 1);
-
-  addBlock("Dirt", 2, 2, 2);
-
+  addBlock("Grass", 2, 0, 1);
+  addBlock("Dirt", 0, 0, 0);
   addBlock("Stone", 3, 3, 3);
-
   addBlock("Sand", 4, 4, 4);
+  addBlock("Oak Log", 6, 6, 5);
+  addBlock("Oak Leaves", 7, 7, 7);
+  addBlock("Red Sand", 8, 8, 8);
+  addBlock("Snow", 9, 9, 9);
 
   Texture wood = renderer.createTexutre("Wood", "Assets/textures/wood.png");
-  std::vector<std::string> filePaths = {"Assets/textures/wall.png", "Assets/textures/fire.png"};
+
   renderer.createTexutreArray("Voxel Textures", filePaths);
 
   // Create a cube entity
@@ -212,7 +227,7 @@ void Application::mainLoop()
     glfwPollEvents();
     processInput(window, dt, camera);
     voxelSystem->Update(dt, glm::vec3(0));
-    meshingSystem->Update(renderer.getTexture("Wood"), renderer);
+    meshingSystem->Update(renderer.getTexture("Voxel Textures"), renderer);
     renderSystem->Update(renderer, dt, camera);
   }
 }
@@ -223,12 +238,16 @@ void Application::cleanup()
 
   for (auto &entity : renderSystem->mEntities)
   {
-    if (!coordinator->HasComponent<MeshComponent>(entity))
+    if (coordinator->HasComponent<MeshComponent>(entity))
     {
-      continue;
+      auto &meshComponent = coordinator->GetComponent<MeshComponent>(entity);
+      meshComponent.mesh->Cleanup();
     }
-    auto &meshComponent = coordinator->GetComponent<MeshComponent>(entity);
-    meshComponent.mesh->Cleanup();
+    if (coordinator->HasComponent<VoxelMeshComponent>(entity))
+    {
+      auto &meshComponent = coordinator->GetComponent<VoxelMeshComponent>(entity);
+      meshComponent.mesh->Cleanup();
+    }
   }
 
   renderSystem.reset();

@@ -88,26 +88,60 @@ int VoxelSystem::getIndex(int x, int y, int z)
   return x + world.chunkWidth * (z + world.chunkLength * y);
 }
 
-void VoxelSystem::GenerateVoxelData(Entity chunk) // World Generation Logic
+void VoxelSystem::GenerateVoxelData(Entity chunk)
 {
   auto &chunkComp = gCoordinator->GetComponent<ChunkComponent>(chunk);
   chunkComp.voxelData.resize(world.chunkWidth * world.chunkHeight * world.chunkLength);
+
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> heightDist(12, 16);
+
+  const uint32_t stoneId = world.registry.nameToId.at("Stone");
+  const uint32_t dirtId = world.registry.nameToId.at("Dirt");
+  const uint32_t grassId = world.registry.nameToId.at("Grass");
+  const uint32_t sandId = world.registry.nameToId.at("Sand");
+  const uint32_t snowId = world.registry.nameToId.at("Snow");
+  const uint32_t airId = world.registry.nameToId.at("Air");
 
   for (int x = 0; x < world.chunkWidth; x++)
   {
     for (int z = 0; z < world.chunkLength; z++)
     {
       int terrainHeight = heightDist(gen);
+      int worldBaseY = chunkComp.worldPosition.y * world.chunkHeight;
 
       for (int y = 0; y < world.chunkHeight; y++)
       {
-        if (y + world.chunkHeight * chunkComp.worldPosition.y <= terrainHeight)
-          chunkComp.voxelData[getIndex(x, world.chunkHeight - y - 1, z)] = {world.registry.nameToId.at("Stone")};
+        int worldY = worldBaseY + y;
+        int index = getIndex(x, world.chunkHeight - y - 1, z);
+
+        if (worldY > terrainHeight)
+        {
+          chunkComp.voxelData[index] = {airId};
+          continue;
+        }
+
+        int depth = terrainHeight - worldY;
+
+        if (depth == 0)
+        {
+          // Surface block
+          if (terrainHeight > 15)
+            chunkComp.voxelData[index] = {snowId};
+          else if (terrainHeight < 13)
+            chunkComp.voxelData[index] = {sandId};
+          else
+            chunkComp.voxelData[index] = {grassId};
+        }
+        else if (depth <= 3)
+        {
+          chunkComp.voxelData[index] = {dirtId};
+        }
         else
-          chunkComp.voxelData[getIndex(x, world.chunkHeight - y - 1, z)] = {world.registry.nameToId.at("Air")};
+        {
+          chunkComp.voxelData[index] = {stoneId};
+        }
       }
     }
   }

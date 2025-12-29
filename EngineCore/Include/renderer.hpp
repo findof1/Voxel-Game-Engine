@@ -54,6 +54,7 @@ public:
   VkDescriptorPool descriptorPool;
   VkPipelineLayout pipelineLayout;
   VkPipeline pipeline;
+  VkPipeline voxelPipeline;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
 

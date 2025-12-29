@@ -23,7 +23,17 @@ void Renderer::init()
   descriptorSetLayout = createDescriptorSetLayout(device, bindings);
 
   pipelineLayout = createPipelineLayout(descriptorSetLayout, device);
-  pipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/vert.spv", "shaders/frag.spv");
+
+  auto vertexBinding = Vertex::getBindingDescription();
+  auto vertexAttributes = Vertex::getAttributeDescriptions();
+
+  pipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/vert.spv", "shaders/frag.spv", &vertexBinding, vertexAttributes);
+
+  auto voxelVertexBinding = VoxelVertex::getBindingDescription();
+  auto voxelVertexAttributes = VoxelVertex::getAttributeDescriptions();
+
+  voxelPipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/voxelVert.spv", "shaders/voxelFrag.spv", &voxelVertexBinding, voxelVertexAttributes);
+
   commandPool = createCommandPool(device, physicalDevice, surface, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   commandBuffers = createCommandBuffers(commandPool, device, MAX_FRAMES_IN_FLIGHT);
   createDepthResources(swapChainObjects, commandPool, graphicsQueue, device, physicalDevice);
@@ -171,6 +181,7 @@ void Renderer::cleanup()
   destroyDescriptorSetLayout(descriptorSetLayout, device);
   destroyCommandPool(commandPool, device);
   destroyPipeline(pipeline, device);
+  destroyPipeline(voxelPipeline, device);
   destroyPipelineLayout(pipelineLayout, device);
   destroyRenderPass(renderPass, device);
   cleanupSwapChain(swapChainObjects, device);

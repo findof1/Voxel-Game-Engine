@@ -9,6 +9,7 @@
 #include "camera.hpp"
 #include "ECS/components.hpp"
 #include "mesh.hpp"
+#include "voxelMesh.hpp"
 
 class MeshingSystem : public System
 {

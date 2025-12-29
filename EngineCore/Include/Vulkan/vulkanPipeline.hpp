@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 #include "vulkanSwapchain.hpp"
 
-VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass renderPass, const SwapChainObjects &swapChainObjects, VkDevice device, const std::string &vertexShaderPath, const std::string &fragmentShaderPath);
+VkPipeline createGraphicsPipeline(VkPipelineLayout pipelineLayout, VkRenderPass renderPass, const SwapChainObjects &swapChainObjects, VkDevice device, const std::string &vertexShaderPath, const std::string &fragmentShaderPath, const VkVertexInputBindingDescription *bindingDescription, const std::vector<VkVertexInputAttributeDescription> &attributeDescriptions);
 void destroyPipeline(VkPipeline pipeline, VkDevice device);
 
 void bindGraphicsPipeline(VkCommandBuffer commandBuffer, VkPipeline pipeline);

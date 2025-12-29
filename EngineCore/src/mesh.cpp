@@ -13,7 +13,7 @@ void Mesh::Init(Texture texture, const std::vector<Vertex> &verts, const std::ve
   vertices = verts;
   indices = inds;
 
-  createVertexBuffer(vertexBufferMemory, vertexBuffer, vertices, renderer.commandPool, renderer.graphicsQueue, renderer.device, renderer.physicalDevice);
+  createVertexBuffer(vertexBufferMemory, vertexBuffer, sizeof(vertices[0]) * vertices.size(), vertices.data(), renderer.commandPool, renderer.graphicsQueue, renderer.device, renderer.physicalDevice);
 
   createIndexBuffer(indexBufferMemory, indexBuffer, indices, renderer.commandPool, renderer.graphicsQueue, renderer.device, renderer.physicalDevice);
 

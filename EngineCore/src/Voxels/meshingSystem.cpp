@@ -1,6 +1,6 @@
 #include "meshingSystem.hpp"
 
-void EmitQuad(std::vector<Vertex> &vertices, std::vector<uint16_t> &indices, const glm::ivec3 &pos, const glm::ivec3 &size, int axis, bool backFace, int texture)
+void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint16_t> &indices, const glm::ivec3 &pos, const glm::ivec3 &size, int axis, bool backFace, uint16_t texture)
 {
   int u = (axis + 1) % 3;
   int v = (axis + 2) % 3;
@@ -43,10 +43,10 @@ void EmitQuad(std::vector<Vertex> &vertices, std::vector<uint16_t> &indices, con
 
   uint32_t start = static_cast<uint32_t>(vertices.size());
 
-  vertices.push_back({v0, {1, 1, 1}, {0, 0}});
-  vertices.push_back({v1, {1, 1, 1}, {1, 0}});
-  vertices.push_back({v2, {1, 1, 1}, {1, 1}});
-  vertices.push_back({v3, {1, 1, 1}, {0, 1}});
+  vertices.push_back({v0, {0, 0}, texture});
+  vertices.push_back({v1, {1, 0}, texture});
+  vertices.push_back({v2, {1, 1}, texture});
+  vertices.push_back({v3, {0, 1}, texture});
 
   bool flip = backFace;
   if (!flip)
@@ -118,7 +118,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
   auto &voxels = chunk.voxelData;
   auto &registry = world.registry;
 
-  std::vector<Vertex> vertices;
+  std::vector<VoxelVertex> vertices;
   std::vector<uint16_t> indices;
 
   glm::vec3 chunkWorldPos = glm::vec3(chunk.worldPosition);
@@ -205,7 +205,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
 
           int tex;
           if (axis == 1)
-            tex = (c > 0) ? block.textureTop : block.textureBottom;
+            tex = (c > 0) ? block.textureBottom : block.textureTop;
           else
             tex = block.textureSide;
 
@@ -239,7 +239,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
   chunkTransform.translation = {chunk.worldPosition.x * world.chunkWidth, -chunk.worldPosition.y * world.chunkHeight, chunk.worldPosition.z * world.chunkLength};
   chunkTransform.scale = {1.0f, 1.0f, 1.0f};
   gCoordinator->AddComponent(chunkEntity, chunkTransform);
-  auto mesh = std::make_shared<Mesh>(renderer);
+  auto mesh = std::make_shared<VoxelMesh>(renderer);
   mesh->Init(voxelTextures, vertices, indices);
-  gCoordinator->AddComponent(chunkEntity, MeshComponent{mesh});
+  gCoordinator->AddComponent(chunkEntity, VoxelMeshComponent{mesh});
 }

@@ -10,7 +10,7 @@
 #include "voxel.hpp"
 #include "entityManager.hpp"
 
-class Mesh;
+class VoxelMesh;
 
 struct IVec3Hash
 {
@@ -28,6 +28,14 @@ enum class ChunkState
     Clean,
     NeedsMeshing,
     Meshing,
+};
+
+struct VoxelMeshComponent
+{
+    std::shared_ptr<VoxelMesh> mesh;
+
+    VoxelMeshComponent() = default;
+    VoxelMeshComponent(std::shared_ptr<VoxelMesh> m) : mesh(m) {}
 };
 
 struct ChunkComponent // turns an entity into a voxel chunk
