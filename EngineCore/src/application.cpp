@@ -105,11 +105,11 @@ void Application::run()
   Entity world = coordinator->CreateEntity();
   {
     WorldComponent worldComponent{};
-    worldComponent.chunkHeight = 16;
-    worldComponent.chunkWidth = 16;
-    worldComponent.chunkLength = 16;
-    worldComponent.renderRadius = 1;
-    worldComponent.simulationRadius = 1;
+    worldComponent.chunkHeight = 32;
+    worldComponent.chunkWidth = 32;
+    worldComponent.chunkLength = 32;
+    worldComponent.renderRadius = 3;
+    worldComponent.simulationRadius = 3;
     worldComponent.seed = 21;
     coordinator->AddComponent(world, worldComponent);
   }
@@ -226,7 +226,7 @@ void Application::mainLoop()
 
     glfwPollEvents();
     processInput(window, dt, camera);
-    voxelSystem->Update(dt, glm::vec3(0));
+    voxelSystem->Update(dt, glm::vec3(camera.Position.x, -camera.Position.y, camera.Position.z));
     meshingSystem->Update(renderer.getTexture("Voxel Textures"), renderer);
     renderSystem->Update(renderer, dt, camera);
   }
@@ -243,6 +243,7 @@ void Application::cleanup()
       auto &meshComponent = coordinator->GetComponent<MeshComponent>(entity);
       meshComponent.mesh->Cleanup();
     }
+
     if (coordinator->HasComponent<VoxelMeshComponent>(entity))
     {
       auto &meshComponent = coordinator->GetComponent<VoxelMeshComponent>(entity);

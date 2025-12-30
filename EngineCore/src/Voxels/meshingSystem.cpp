@@ -228,18 +228,21 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
     }
   }
 
-  if (gCoordinator->HasComponent<MeshComponent>(chunkEntity))
+  if (gCoordinator->HasComponent<VoxelMeshComponent>(chunkEntity))
   {
-    MeshComponent mesh = gCoordinator->GetComponent<MeshComponent>(chunkEntity);
+    VoxelMeshComponent mesh = gCoordinator->GetComponent<VoxelMeshComponent>(chunkEntity);
     mesh.mesh->Cleanup();
-    gCoordinator->RemoveComponent<MeshComponent>(chunkEntity);
+    gCoordinator->RemoveComponent<VoxelMeshComponent>(chunkEntity);
   }
 
-  TransformComponent chunkTransform{};
-  chunkTransform.translation = {chunk.worldPosition.x * world.chunkWidth, -chunk.worldPosition.y * world.chunkHeight, chunk.worldPosition.z * world.chunkLength};
-  chunkTransform.scale = {1.0f, 1.0f, 1.0f};
-  gCoordinator->AddComponent(chunkEntity, chunkTransform);
-  auto mesh = std::make_shared<VoxelMesh>(renderer);
-  mesh->Init(voxelTextures, vertices, indices);
-  gCoordinator->AddComponent(chunkEntity, VoxelMeshComponent{mesh});
+  if (vertices.size() > 0 && indices.size() > 0)
+  {
+    TransformComponent chunkTransform{};
+    chunkTransform.translation = {chunk.worldPosition.x * world.chunkWidth, -chunk.worldPosition.y * world.chunkHeight, chunk.worldPosition.z * world.chunkLength};
+    chunkTransform.scale = {1.0f, 1.0f, 1.0f};
+    gCoordinator->AddComponent(chunkEntity, chunkTransform);
+    auto mesh = std::make_shared<VoxelMesh>(renderer);
+    mesh->Init(voxelTextures, vertices, indices);
+    gCoordinator->AddComponent(chunkEntity, VoxelMeshComponent{mesh});
+  }
 }

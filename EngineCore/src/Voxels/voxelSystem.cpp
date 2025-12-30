@@ -1,6 +1,7 @@
 #include <random>
 
 #include "voxelSystem.hpp"
+#include "voxelMesh.hpp"
 
 void VoxelSystem::Init(std::shared_ptr<Coordinator> coordinator)
 {
@@ -52,6 +53,10 @@ void VoxelSystem::UnloadDistantChunks(const glm::ivec3 &playerChunk)
     {
       gCoordinator->GetComponent<MeshComponent>(e).mesh->Cleanup();
     }
+    if (gCoordinator->HasComponent<VoxelMeshComponent>(e))
+    {
+      gCoordinator->GetComponent<VoxelMeshComponent>(e).mesh->Cleanup();
+    }
 
     gCoordinator->DestroyEntity(e);
     world.chunkMap.erase(chunkPos);
@@ -88,6 +93,161 @@ int VoxelSystem::getIndex(int x, int y, int z)
   return x + world.chunkWidth * (z + world.chunkLength * y);
 }
 
+uint32_t hash2(int x, int y, uint32_t seed)
+{
+  uint32_t h = seed;
+  h ^= x * 0x27d4eb2d;
+  h ^= y * 0x165667b1;
+  h *= 0xc2b2ae35;
+  return h;
+}
+
+glm::vec2 gradient2(int x, int y, uint32_t seed)
+{
+  uint32_t h = hash2(x, y, seed);
+  h &= 7; // 8 directions
+
+  switch (h)
+  {
+  case 0:
+    return {1, 0};
+  case 1:
+    return {-1, 0};
+  case 2:
+    return {0, 1};
+  case 3:
+    return {0, -1};
+  case 4:
+    return {1, 1};
+  case 5:
+    return {-1, 1};
+  case 6:
+    return {1, -1};
+  default:
+    return {-1, -1};
+  }
+}
+
+float fade(float t)
+{
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+float perlin2(float x, float y, uint32_t seed)
+{
+  int x0 = int(floor(x));
+  int y0 = int(floor(y));
+  int x1 = x0 + 1;
+  int y1 = y0 + 1;
+
+  float sx = x - float(x0);
+  float sy = y - float(y0);
+
+  glm::vec2 g00 = gradient2(x0, y0, seed);
+  glm::vec2 g10 = gradient2(x1, y0, seed);
+  glm::vec2 g01 = gradient2(x0, y1, seed);
+  glm::vec2 g11 = gradient2(x1, y1, seed);
+
+  glm::vec2 d00 = {sx, sy};
+  glm::vec2 d10 = {sx - 1, sy};
+  glm::vec2 d01 = {sx, sy - 1};
+  glm::vec2 d11 = {sx - 1, sy - 1};
+
+  float n00 = glm::dot(g00, d00);
+  float n10 = glm::dot(g10, d10);
+  float n01 = glm::dot(g01, d01);
+  float n11 = glm::dot(g11, d11);
+
+  float u = fade(sx);
+  float v = fade(sy);
+
+  float nx0 = std::lerp(n00, n10, u);
+  float nx1 = std::lerp(n01, n11, u);
+
+  return std::lerp(nx0, nx1, v);
+}
+
+// value must be from -1 to 1
+float normalize(float value)
+{
+  return value * 0.5f + 0.5f;
+}
+
+float perlin2Layered(float x, float y, uint32_t seed, int octaves, float frequency, float lacunarity, float gain)
+{
+  float value = 0.0f;
+  float amp = 1.0f;
+  float freq = frequency;
+  float maxAmp = 0.0f;
+
+  for (int i = 0; i < octaves; i++)
+  {
+    value += perlin2(x * freq, y * freq, seed + i * 1013) * amp;
+    maxAmp += amp;
+
+    amp *= gain;
+    freq *= lacunarity;
+  }
+
+  return value / maxAmp;
+}
+
+float random2(int x, int y, uint32_t seed)
+{
+  return (hash2(x, y, seed) & 0xFFFFFF) / float(0xFFFFFF);
+}
+
+float randomRangeBiased2(int x, int y, uint32_t seed, float min, float max, float bias = 0)
+{
+  float r = random2(x, y, seed);
+
+  if (bias != 0.0f)
+  {
+    // bias > 0  -> bias toward max
+    // bias < 0  -> bias toward min
+    float k = 1.0f + std::abs(bias);
+    if (bias > 0.0f)
+      r = std::pow(r, 1.0f / k);
+    else
+      r = 1.0f - std::pow(1.0f - r, 1.0f / k);
+  }
+
+  return min + r * (max - min);
+}
+
+uint32_t hash3(int x, int y, int z, uint32_t seed)
+{
+  uint32_t h = seed;
+  h ^= x * 0x27d4eb2d;
+  h ^= y * 0x165667b1;
+  h ^= z * 0x85ebca6b;
+  h *= 0xc2b2ae35;
+  return h;
+}
+
+float random3(int x, int y, int z, uint32_t seed)
+{
+  return (hash3(x, y, z, seed) & 0xFFFFFF) / float(0xFFFFFF);
+}
+
+float randomRangeBiased3(int x, int y, int z, uint32_t seed, float min, float max, float bias = 0)
+{
+  float r = random3(x, y, z, seed);
+
+  if (bias != 0.0f)
+  {
+    // bias > 0  -> bias toward max
+    // bias < 0  -> bias toward min
+    float k = 1.0f + std::abs(bias);
+    if (bias > 0.0f)
+      r = std::pow(r, 1.0f / k);
+    else
+      r = 1.0f - std::pow(1.0f - r, 1.0f / k);
+  }
+
+  return min + r * (max - min);
+}
+
 void VoxelSystem::GenerateVoxelData(Entity chunk)
 {
   auto &chunkComp = gCoordinator->GetComponent<ChunkComponent>(chunk);
@@ -108,7 +268,17 @@ void VoxelSystem::GenerateVoxelData(Entity chunk)
   {
     for (int z = 0; z < world.chunkLength; z++)
     {
-      int terrainHeight = heightDist(gen);
+      int worldBaseX = x + chunkComp.worldPosition.x * world.chunkWidth;
+      int worldBaseZ = z + chunkComp.worldPosition.z * world.chunkLength;
+
+      // n is between -1 and 1
+      float n = perlin2Layered(worldBaseX, worldBaseZ, world.seed, 4, 0.03f, 2.0f, 0.7f);
+
+      // n is between 0 and 1
+      n = normalize(n);
+
+      // terrainHeight is between 12 and 64
+      int terrainHeight = (n * (64 - 12)) + 12;
       int worldBaseY = chunkComp.worldPosition.y * world.chunkHeight;
 
       for (int y = 0; y < world.chunkHeight; y++)
@@ -127,9 +297,9 @@ void VoxelSystem::GenerateVoxelData(Entity chunk)
         if (depth == 0)
         {
           // Surface block
-          if (terrainHeight > 15)
+          if (terrainHeight > 55)
             chunkComp.voxelData[index] = {snowId};
-          else if (terrainHeight < 13)
+          else if (terrainHeight < 30)
             chunkComp.voxelData[index] = {sandId};
           else
             chunkComp.voxelData[index] = {grassId};
