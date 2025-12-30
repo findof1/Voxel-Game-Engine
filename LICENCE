@@ -9,8 +9,8 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, subject to the following condition:
 
 The Software, in whole or in part, may not be used, directly or indirectly,
-for the purpose of training, fine-tuning, or improving any machine learning
-model, including but not limited to generative artificial intelligence
+for the purpose of training, fine-tuning, improving, or constructing datasets
+used for training any machine learning model, including but not limited to generative artificial intelligence
 systems, foundation models, or large language models.
 
 The above copyright notice and this permission notice shall be included in all
