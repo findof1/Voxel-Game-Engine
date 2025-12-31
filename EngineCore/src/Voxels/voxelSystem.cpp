@@ -90,7 +90,8 @@ void VoxelSystem::CreateChunk(const glm::ivec3 &coord)
 
 int VoxelSystem::getIndex(int x, int y, int z)
 {
-  return x + world.chunkWidth * (z + world.chunkLength * y);
+  int flippedY = world.chunkHeight - y - 1;
+  return x + world.chunkWidth * z + world.chunkWidth * world.chunkLength * flippedY;
 }
 
 uint32_t hash2(int x, int y, uint32_t seed)
@@ -264,27 +265,29 @@ void VoxelSystem::GenerateVoxelData(Entity chunk)
   const uint32_t snowId = world.registry.nameToId.at("Snow");
   const uint32_t airId = world.registry.nameToId.at("Air");
 
+  int worldBaseX = chunkComp.worldPosition.x * world.chunkWidth;
+  int worldBaseZ = chunkComp.worldPosition.z * world.chunkLength;
+  int worldBaseY = chunkComp.worldPosition.y * world.chunkHeight;
   for (int x = 0; x < world.chunkWidth; x++)
   {
     for (int z = 0; z < world.chunkLength; z++)
     {
-      int worldBaseX = x + chunkComp.worldPosition.x * world.chunkWidth;
-      int worldBaseZ = z + chunkComp.worldPosition.z * world.chunkLength;
+      int worldX = x + worldBaseX;
+      int worldZ = z + worldBaseZ;
 
       // n is between -1 and 1
-      float n = perlin2Layered(worldBaseX, worldBaseZ, world.seed, 4, 0.03f, 2.0f, 0.7f);
+      float n = perlin2Layered(worldX, worldZ, world.seed, 4, 0.03f, 2.0f, 0.7f);
 
       // n is between 0 and 1
       n = normalize(n);
 
       // terrainHeight is between 12 and 64
       int terrainHeight = (n * (64 - 12)) + 12;
-      int worldBaseY = chunkComp.worldPosition.y * world.chunkHeight;
 
       for (int y = 0; y < world.chunkHeight; y++)
       {
         int worldY = worldBaseY + y;
-        int index = getIndex(x, world.chunkHeight - y - 1, z);
+        int index = getIndex(x, y, z);
 
         if (worldY > terrainHeight)
         {
@@ -297,7 +300,7 @@ void VoxelSystem::GenerateVoxelData(Entity chunk)
         if (depth == 0)
         {
           // Surface block
-          if (terrainHeight > 55)
+          if (terrainHeight > 60)
             chunkComp.voxelData[index] = {snowId};
           else if (terrainHeight < 30)
             chunkComp.voxelData[index] = {sandId};

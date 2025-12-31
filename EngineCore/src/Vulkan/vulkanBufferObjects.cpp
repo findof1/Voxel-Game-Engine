@@ -91,3 +91,15 @@ void destroyUniformBuffers(std::vector<VkBuffer> &uniformBuffers, std::vector<Vk
     }
   }
 }
+
+void createStorageBuffer(VkDeviceSize bufferSize, VkBuffer &storageBuffer, VkDeviceMemory &storageBufferMemory, void *&storageBufferMapped, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  createBuffer(bufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, storageBuffer, storageBufferMemory, device, physicalDevice);
+
+  vkMapMemory(device, storageBufferMemory, 0, bufferSize, 0, &storageBufferMapped);
+}
+
+void destroyStorageBuffer(VkBuffer storageBuffer, VkDeviceMemory storageBufferMemory, VkDevice device)
+{
+  destroyBuffer(storageBufferMemory, storageBuffer, device);
+}

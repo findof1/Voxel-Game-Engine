@@ -43,6 +43,7 @@ struct ChunkComponent // turns an entity into a voxel chunk
     std::vector<Voxel> voxelData; // might want to turn it into a custom allocated type because the size stays constant after initialization
 
     ChunkState chunkState = ChunkState::Clean;
+    int chunkLOD = 0;
 
     glm::ivec3 worldPosition;
 

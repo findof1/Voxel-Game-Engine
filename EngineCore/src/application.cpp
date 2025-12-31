@@ -105,12 +105,12 @@ void Application::run()
   Entity world = coordinator->CreateEntity();
   {
     WorldComponent worldComponent{};
-    worldComponent.chunkHeight = 32;
-    worldComponent.chunkWidth = 32;
-    worldComponent.chunkLength = 32;
-    worldComponent.renderRadius = 3;
-    worldComponent.simulationRadius = 3;
-    worldComponent.seed = 21;
+    worldComponent.chunkHeight = 37;
+    worldComponent.chunkWidth = 19;
+    worldComponent.chunkLength = 17;
+    worldComponent.renderRadius = 2;
+    worldComponent.simulationRadius = 2;
+    worldComponent.seed = 213;
     coordinator->AddComponent(world, worldComponent);
   }
   WorldComponent &worldComp = coordinator->GetComponent<WorldComponent>(world);
@@ -169,9 +169,20 @@ void Application::run()
   addBlock("Red Sand", 8, 8, 8);
   addBlock("Snow", 9, 9, 9);
 
+  Texture skyTex = renderer.createTexutre("Sky", "Assets/textures/sky.png");
   Texture wood = renderer.createTexutre("Wood", "Assets/textures/wood.png");
 
   renderer.createTexutreArray("Voxel Textures", filePaths);
+
+  // Create a skybox entity
+  {
+    skybox = coordinator->CreateEntity();
+    TransformComponent skyTransform{};
+    skyTransform.translation = {0.0f, 0.0f, 0.0f};
+    skyTransform.scale = {1000.0f, 1000.0f, 1000.0f};
+    coordinator->AddComponent(skybox, skyTransform);
+    LoadModel(skybox, coordinator, renderer, skyTex, "Assets/models/skybox.obj");
+  }
 
   // Create a cube entity
   {
@@ -226,6 +237,10 @@ void Application::mainLoop()
 
     glfwPollEvents();
     processInput(window, dt, camera);
+
+    auto &transform = coordinator->GetComponent<TransformComponent>(skybox);
+    transform.translation = camera.Position;
+
     voxelSystem->Update(dt, glm::vec3(camera.Position.x, -camera.Position.y, camera.Position.z));
     meshingSystem->Update(renderer.getTexture("Voxel Textures"), renderer);
     renderSystem->Update(renderer, dt, camera);

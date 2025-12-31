@@ -25,10 +25,9 @@ void RenderSystem::RenderScene(Renderer &renderer, float deltaTime, const Camera
   {
     if (gCoordinator->HasComponent<MeshComponent>(entity))
     {
-      auto &transform = gCoordinator->GetComponent<TransformComponent>(entity);
 
       UniformBufferObject ubo;
-      ubo.model = transform.GetMatrix();
+      ubo.model = getWorldMatrix(entity);
       ubo.view = camera.getViewMatrix();
       ubo.proj = camera.getProjectionMatrix(renderer.swapChainObjects.swapChainExtent.width / (float)renderer.swapChainObjects.swapChainExtent.height);
 
@@ -50,10 +49,8 @@ void RenderSystem::RenderScene(Renderer &renderer, float deltaTime, const Camera
 
     if (gCoordinator->HasComponent<VoxelMeshComponent>(entity))
     {
-      auto &transform = gCoordinator->GetComponent<TransformComponent>(entity);
-
       UniformBufferObject ubo;
-      ubo.model = transform.GetMatrix();
+      ubo.model = getWorldMatrix(entity);
       ubo.view = camera.getViewMatrix();
       ubo.proj = camera.getProjectionMatrix(renderer.swapChainObjects.swapChainExtent.width / (float)renderer.swapChainObjects.swapChainExtent.height);
 
@@ -73,4 +70,24 @@ void RenderSystem::RenderScene(Renderer &renderer, float deltaTime, const Camera
       mesh.mesh->Draw();
     }
   }
+}
+
+glm::mat4 RenderSystem::getWorldMatrix(Entity entity)
+{
+  glm::mat4 result(1.0f);
+
+  Entity current = entity;
+
+  while (current != -1 && gCoordinator->HasComponent<TransformComponent>(current))
+  {
+    auto &t = gCoordinator->GetComponent<TransformComponent>(current);
+    result = t.GetMatrix() * result;
+
+    if (!gCoordinator->HasComponent<Parent>(current))
+      break;
+
+    current = gCoordinator->GetComponent<Parent>(current).value;
+  }
+
+  return result;
 }

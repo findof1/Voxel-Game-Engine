@@ -19,3 +19,6 @@ void bindIndexBuffer(VkBuffer indexBuffer, VkCommandBuffer commandBuffer);
 
 void createUniformBuffers(std::vector<VkBuffer> &uniformBuffers, std::vector<VkDeviceMemory> &uniformBuffersMemory, std::vector<void *> &uniformBuffersMapped, VkDevice device, VkPhysicalDevice physicalDevice);
 void destroyUniformBuffers(std::vector<VkBuffer> &uniformBuffers, std::vector<VkDeviceMemory> &uniformBuffersMemory, VkDevice device);
+
+void createStorageBuffer(VkDeviceSize bufferSize, VkBuffer &storageBuffer, VkDeviceMemory &storageBufferMemory, void *&storageBufferMapped, VkDevice device, VkPhysicalDevice physicalDevice);
+void destroyStorageBuffer(VkBuffer storageBuffer, VkDeviceMemory storageBufferMemory, VkDevice device);

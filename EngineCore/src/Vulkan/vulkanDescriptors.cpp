@@ -22,6 +22,17 @@ VkDescriptorSetLayout createDescriptorSetLayout(VkDevice device, std::span<const
   return layout;
 }
 
+VkDescriptorSetLayoutBinding storageBufferBinding(uint32_t binding, VkShaderStageFlags stages)
+{
+  VkDescriptorSetLayoutBinding b{};
+  b.binding = binding;
+  b.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  b.descriptorCount = 1;
+  b.stageFlags = stages;
+  b.pImmutableSamplers = nullptr;
+  return b;
+}
+
 VkDescriptorSetLayoutBinding uniformBufferBinding(uint32_t binding, VkShaderStageFlags stages)
 {
   VkDescriptorSetLayoutBinding b{};
@@ -56,16 +67,18 @@ VkDescriptorPool createDescriptorPool(VkDevice device)
 {
   std::array<VkDescriptorPoolSize, 2> poolSizes{};
   poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSizes[0].descriptorCount = 5000;
+  poolSizes[0].descriptorCount = 10000;
   poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  poolSizes[1].descriptorCount = 5000;
+  poolSizes[1].descriptorCount = 10000;
+  // poolSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  // poolSizes[2].descriptorCount = 5000;
 
   VkDescriptorPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
   poolInfo.pPoolSizes = poolSizes.data();
-  poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 512;
-  poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT; // will allow us to destroy game objects
+  poolInfo.maxSets = 10000;
+  poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
   VkDescriptorPool descriptorPool;
 
@@ -111,6 +124,19 @@ void createDescriptorSets(std::vector<VkDescriptorSet> &descriptorSets, std::vec
 
     updateDescriptorSets(device, descriptorWrites);
   }
+}
+
+VkWriteDescriptorSet writeStorageBuffer(VkDescriptorSet dstSet, uint32_t binding, const VkDescriptorBufferInfo *bufferInfo)
+{
+  VkWriteDescriptorSet write{};
+  write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  write.dstSet = dstSet;
+  write.dstBinding = binding;
+  write.dstArrayElement = 0;
+  write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  write.descriptorCount = 1;
+  write.pBufferInfo = bufferInfo;
+  return write;
 }
 
 VkWriteDescriptorSet writeUniformBuffer(VkDescriptorSet dstSet, uint32_t binding, const VkDescriptorBufferInfo *bufferInfo)

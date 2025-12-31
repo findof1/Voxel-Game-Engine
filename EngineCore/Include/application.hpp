@@ -22,6 +22,7 @@ public:
   GLFWwindow *window;
   Renderer renderer;
   Camera camera;
+  Entity skybox;
 
   std::shared_ptr<Coordinator> coordinator;
   std::shared_ptr<VoxelSystem> voxelSystem;

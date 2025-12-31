@@ -54,8 +54,8 @@ Entity LoadNodeRecursive(std::shared_ptr<Coordinator> coordinator, Renderer &ren
   // Parent/Children
   if (parent != -1)
   {
-    if (!coordinator->HasComponent<Parent>(parent))
-      coordinator->AddComponent(entity, Parent{entity});
+    if (!coordinator->HasComponent<Parent>(entity))
+      coordinator->AddComponent(entity, Parent{parent});
 
     if (!coordinator->HasComponent<Children>(parent))
       coordinator->AddComponent(parent, Children{});

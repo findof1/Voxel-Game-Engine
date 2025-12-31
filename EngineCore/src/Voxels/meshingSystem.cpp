@@ -43,10 +43,20 @@ void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint16_t> &indices
 
   uint32_t start = static_cast<uint32_t>(vertices.size());
 
-  vertices.push_back({v0, {0, 0}, texture});
-  vertices.push_back({v1, {1, 0}, texture});
-  vertices.push_back({v2, {1, 1}, texture});
-  vertices.push_back({v3, {0, 1}, texture});
+  if (axis == 0)
+  {
+    vertices.push_back({v0, {1, 0}, texture});
+    vertices.push_back({v1, {1, 1}, texture});
+    vertices.push_back({v2, {0, 1}, texture});
+    vertices.push_back({v3, {0, 0}, texture});
+  }
+  else
+  {
+    vertices.push_back({v0, {0, 0}, texture});
+    vertices.push_back({v1, {1, 0}, texture});
+    vertices.push_back({v2, {1, 1}, texture});
+    vertices.push_back({v3, {0, 1}, texture});
+  }
 
   bool flip = backFace;
   if (!flip)
@@ -69,9 +79,9 @@ void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint16_t> &indices
   }
 }
 
-int Index3D(int x, int y, int z, int w, int l)
+int Index3D(int x, int y, int z, int w, int l, int h)
 {
-  return x + w * (z + l * y);
+  return x + w * z + w * l * y;
 }
 
 bool IsSolid(const std::vector<Voxel> &voxels, const BlockRegistry &registry, int x, int y, int z, int w, int h, int d)
@@ -80,7 +90,7 @@ bool IsSolid(const std::vector<Voxel> &voxels, const BlockRegistry &registry, in
       x >= w || y >= h || z >= d)
     return false;
 
-  uint32_t type = voxels[Index3D(x, y, z, w, h)].type;
+  uint32_t type = voxels[Index3D(x, y, z, w, d, h)].type;
   return registry.blocks[type].visible;
 }
 
@@ -154,7 +164,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
             mask[n++] = 0;
           else
           {
-            int idx = a ? Index3D(x[0], x[1], x[2], W, D) : Index3D(y[0], y[1], y[2], W, D);
+            int idx = a ? Index3D(x[0], x[1], x[2], W, D, H) : Index3D(y[0], y[1], y[2], W, D, H);
 
             mask[n++] = a ? (idx + 1) : -(idx + 1);
           }

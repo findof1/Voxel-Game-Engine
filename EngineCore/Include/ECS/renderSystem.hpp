@@ -19,4 +19,7 @@ public:
     void Init(std::shared_ptr<Coordinator> coordinator, int screenWidth, int screenHeight);
     void Update(Renderer &renderer, float deltaTime, const Camera &camera);
     void RenderScene(Renderer &renderer, float deltaTime, const Camera &camera);
+
+private:
+    glm::mat4 getWorldMatrix(Entity entity);
 };
