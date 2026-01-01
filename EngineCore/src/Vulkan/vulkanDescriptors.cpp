@@ -65,13 +65,13 @@ void destroyDescriptorSetLayout(VkDescriptorSetLayout descriptorSetLayout, VkDev
 
 VkDescriptorPool createDescriptorPool(VkDevice device)
 {
-  std::array<VkDescriptorPoolSize, 2> poolSizes{};
+  std::array<VkDescriptorPoolSize, 3> poolSizes{};
   poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  poolSizes[0].descriptorCount = 10000;
+  poolSizes[0].descriptorCount = 256;
   poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  poolSizes[1].descriptorCount = 10000;
-  // poolSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-  // poolSizes[2].descriptorCount = 5000;
+  poolSizes[1].descriptorCount = 256;
+  poolSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+  poolSizes[2].descriptorCount = 256;
 
   VkDescriptorPoolCreateInfo poolInfo{};
   poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -99,30 +99,6 @@ void destroyDescriptorPool(VkDescriptorPool descriptorPool, VkDevice device)
   if (descriptorPool != VK_NULL_HANDLE)
   {
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-  }
-}
-
-void createDescriptorSets(std::vector<VkDescriptorSet> &descriptorSets, std::vector<VkBuffer> &uniformBuffers, VkImageView textureImageView, VkSampler textureSampler, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDevice device)
-{
-  allocateDescriptorSets(descriptorSets, descriptorPool, descriptorSetLayout, device, MAX_FRAMES_IN_FLIGHT);
-
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-  {
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformBuffers[i];
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
-
-    VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = textureImageView;
-    imageInfo.sampler = textureSampler;
-
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites{
-        writeUniformBuffer(descriptorSets[i], 0, &bufferInfo),
-        writeCombinedImageSampler(descriptorSets[i], 1, &imageInfo)};
-
-    updateDescriptorSets(device, descriptorWrites);
   }
 }
 
@@ -184,12 +160,35 @@ void allocateDescriptorSets(std::vector<VkDescriptorSet> &descriptorSets, VkDesc
   }
 }
 
+void allocateDescriptorSet(VkDescriptorSet *descriptorSet, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDevice device)
+{
+  std::vector<VkDescriptorSetLayout> layouts(1, descriptorSetLayout);
+  VkDescriptorSetAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+  allocInfo.descriptorPool = descriptorPool;
+  allocInfo.descriptorSetCount = static_cast<uint32_t>(1);
+  allocInfo.pSetLayouts = layouts.data();
+  if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSet) != VK_SUCCESS)
+  {
+    std::cerr << "Failed to allocate descriptor sets!" << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+}
+
 void updateDescriptorSets(VkDevice device, std::span<const VkWriteDescriptorSet> descriptorWrites)
 {
   vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
-void bindDescriptorSets(VkDescriptorSet descriptorSet, VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout)
+void bindDescriptorSet(VkDescriptorSet descriptorSet, VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int firstSet, int setCount)
 {
   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+}
+
+void bindDescriptorSets(std::vector<VkDescriptorSet> &descriptorSets, VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout)
+{
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 }

@@ -1,4 +1,6 @@
 #include "renderer.hpp"
+#include "uniformData.hpp"
+#include "voxelSystem.hpp"
 
 Renderer::Renderer(GLFWwindow *window) : window(window)
 {
@@ -16,29 +18,48 @@ void Renderer::init()
   createImageViews(swapChainObjects, device);
   renderPass = createRenderPass(swapChainObjects, device, physicalDevice);
 
-  std::array<VkDescriptorSetLayoutBinding, 2> bindings{
-      uniformBufferBinding(0, VK_SHADER_STAGE_VERTEX_BIT),
-      combinedImageSamplerBinding(1, VK_SHADER_STAGE_FRAGMENT_BIT)};
+  std::array<VkDescriptorSetLayoutBinding, 1> cameraBindings{
+      uniformBufferBinding(0, VK_SHADER_STAGE_VERTEX_BIT)};
 
-  descriptorSetLayout = createDescriptorSetLayout(device, bindings);
+  cameraSetLayout = createDescriptorSetLayout(device, cameraBindings);
 
-  pipelineLayout = createPipelineLayout(descriptorSetLayout, device);
+  std::array<VkDescriptorSetLayoutBinding, 1> imageBindings{
+      combinedImageSamplerBinding(0, VK_SHADER_STAGE_FRAGMENT_BIT)};
 
+  imageSetLayout = createDescriptorSetLayout(device, imageBindings);
+
+  std::array<VkDescriptorSetLayoutBinding, 1> voxelBindings{
+      storageBufferBinding(0, VK_SHADER_STAGE_VERTEX_BIT)};
+
+  voxelSetLayout = createDescriptorSetLayout(device, voxelBindings);
+
+  VkPushConstantRange pushConstantRanges = createPushConstantInfo(sizeof(PushConstants), VK_SHADER_STAGE_VERTEX_BIT);
+  std::vector<VkDescriptorSetLayout> setLayouts = {cameraSetLayout, imageSetLayout};
+  pipelineLayout = createPipelineLayout(setLayouts, device, &pushConstantRanges);
   auto vertexBinding = Vertex::getBindingDescription();
   auto vertexAttributes = Vertex::getAttributeDescriptions();
 
   pipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/vert.spv", "shaders/frag.spv", &vertexBinding, vertexAttributes);
 
+  VkPushConstantRange voxelPushConstantRanges = createPushConstantInfo(sizeof(VoxelPushConstants), VK_SHADER_STAGE_VERTEX_BIT);
+  std::vector<VkDescriptorSetLayout> voxelSetLayouts = {cameraSetLayout, voxelSetLayout, imageSetLayout};
+  voxelPipelineLayout = createPipelineLayout(voxelSetLayouts, device, &voxelPushConstantRanges);
   auto voxelVertexBinding = VoxelVertex::getBindingDescription();
   auto voxelVertexAttributes = VoxelVertex::getAttributeDescriptions();
 
-  voxelPipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/voxelVert.spv", "shaders/voxelFrag.spv", &voxelVertexBinding, voxelVertexAttributes);
+  voxelPipeline = createGraphicsPipeline(voxelPipelineLayout, renderPass, swapChainObjects, device, "shaders/voxelVert.spv", "shaders/voxelFrag.spv", &voxelVertexBinding, voxelVertexAttributes);
 
   commandPool = createCommandPool(device, physicalDevice, surface, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   commandBuffers = createCommandBuffers(commandPool, device, MAX_FRAMES_IN_FLIGHT);
   createDepthResources(swapChainObjects, commandPool, graphicsQueue, device, physicalDevice);
   createSwapchainFramebuffers(renderPass, swapChainObjects, device);
   descriptorPool = createDescriptorPool(device);
+
+  VkDeviceSize storageBufferSize = sizeof(ShaderBufferObject) * MAX_CHUNKS;
+  createStorageBuffer(storageBufferSize, storageBuffer, storageBufferMemory, storageBufferMapped, device, physicalDevice);
+  storageBufferAccess = static_cast<ShaderBufferObject *>(storageBufferMapped);
+  createUniformBuffers(uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, device, physicalDevice);
+  createDescriptorSets();
 
   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -55,6 +76,37 @@ void Renderer::init()
   }
 }
 
+void Renderer::createDescriptorSets()
+{
+  // camera descriptors
+  allocateDescriptorSets(cameraSets, descriptorPool, cameraSetLayout, device, MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+  {
+    VkDescriptorBufferInfo bufferInfo{};
+    bufferInfo.buffer = uniformBuffers[i];
+    bufferInfo.offset = 0;
+    bufferInfo.range = sizeof(UniformBufferObject);
+
+    std::array<VkWriteDescriptorSet, 1> descriptorWrites{
+        writeUniformBuffer(cameraSets[i], 0, &bufferInfo)};
+
+    updateDescriptorSets(device, descriptorWrites);
+  }
+
+  // voxel descriptors
+  allocateDescriptorSet(&voxelSet, descriptorPool, voxelSetLayout, device);
+  VkDescriptorBufferInfo bufferInfo{};
+  bufferInfo.buffer = storageBuffer;
+  bufferInfo.offset = 0;
+  bufferInfo.range = sizeof(ShaderBufferObject) * MAX_CHUNKS;
+
+  std::array<VkWriteDescriptorSet, 1> descriptorWrites{
+      writeStorageBuffer(voxelSet, 0, &bufferInfo)};
+
+  updateDescriptorSets(device, descriptorWrites);
+}
+
 Texture Renderer::createTexutre(const std::string &name, const std::string &filePath)
 {
   Texture texture;
@@ -63,7 +115,22 @@ Texture Renderer::createTexutre(const std::string &name, const std::string &file
   texture.sampler = createTextureSampler(device, physicalDevice);
 
   textures.emplace(name, texture);
-  return texture;
+  VkDescriptorSet &imageSet = textures.at(name).imageSet;
+  // create descriptor set for the texture
+  allocateDescriptorSet(&imageSet, descriptorPool, imageSetLayout, device);
+
+  VkDescriptorImageInfo imageInfo{};
+  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  imageInfo.imageView = textures.at(name).view;
+  imageInfo.sampler = textures.at(name).sampler;
+
+  std::array<VkWriteDescriptorSet, 1> descriptorWrites{
+      writeCombinedImageSampler(imageSet, 0, &imageInfo)};
+
+  updateDescriptorSets(device, descriptorWrites);
+  //
+
+  return textures.at(name);
 }
 
 Texture Renderer::createTexutreArray(const std::string &name, const std::vector<std::string> filePaths)
@@ -72,6 +139,20 @@ Texture Renderer::createTexutreArray(const std::string &name, const std::vector<
   createTextureArrayImage(texture.image, texture.memory, filePaths, commandPool, graphicsQueue, device, physicalDevice);
   texture.view = createImageView(texture.image, VK_FORMAT_R8G8B8A8_SRGB, device, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, filePaths.size());
   texture.sampler = createTextureSampler(device, physicalDevice);
+
+  // create descriptor set for the texture
+  allocateDescriptorSet(&texture.imageSet, descriptorPool, imageSetLayout, device);
+
+  VkDescriptorImageInfo imageInfo{};
+  imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  imageInfo.imageView = texture.view;
+  imageInfo.sampler = texture.sampler;
+
+  std::array<VkWriteDescriptorSet, 1> descriptorWrites{
+      writeCombinedImageSampler(texture.imageSet, 0, &imageInfo)};
+
+  updateDescriptorSets(device, descriptorWrites);
+  //
 
   textures.emplace(name, texture);
   return texture;
@@ -88,6 +169,19 @@ Texture Renderer::getTexture(const std::string &name)
     exit(EXIT_FAILURE);
   }
   return textures.at(name);
+}
+
+Texture *Renderer::getTexturePointer(const std::string &name)
+{
+  if (textures.find(name) == textures.end())
+  {
+    std::cerr << "getTexture failed with texture name: " << name << std::endl;
+    glfwTerminate();
+    std::cerr << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    exit(EXIT_FAILURE);
+  }
+  return &textures.at(name);
 }
 
 void Renderer::startFrame()
@@ -155,6 +249,16 @@ void Renderer::cleanup()
 {
   vkDeviceWaitIdle(device);
 
+  destroyUniformBuffers(uniformBuffers, uniformBuffersMemory, device);
+  uniformBuffers.clear();
+  uniformBuffersMemory.clear();
+  uniformBuffersMapped.clear();
+
+  destroyStorageBuffer(storageBuffer, storageBufferMemory, device);
+
+  vkFreeDescriptorSets(device, descriptorPool, static_cast<uint32_t>(cameraSets.size()), cameraSets.data());
+  vkFreeDescriptorSets(device, descriptorPool, 1, &voxelSet);
+
   for (auto fence : inFlightFences)
   {
     destroyFence(fence, device);
@@ -175,14 +279,18 @@ void Renderer::cleanup()
     destroyTextureSampler(tex.sampler, device);
     destroyImageView(tex.view, device);
     destroyTextureImage(tex.image, tex.memory, device);
+    vkFreeDescriptorSets(device, descriptorPool, 1, &tex.imageSet);
   }
 
   destroyDescriptorPool(descriptorPool, device);
-  destroyDescriptorSetLayout(descriptorSetLayout, device);
+  destroyDescriptorSetLayout(cameraSetLayout, device);
+  destroyDescriptorSetLayout(imageSetLayout, device);
+  destroyDescriptorSetLayout(voxelSetLayout, device);
   destroyCommandPool(commandPool, device);
   destroyPipeline(pipeline, device);
-  destroyPipeline(voxelPipeline, device);
   destroyPipelineLayout(pipelineLayout, device);
+  destroyPipeline(voxelPipeline, device);
+  destroyPipelineLayout(voxelPipelineLayout, device);
   destroyRenderPass(renderPass, device);
   cleanupSwapChain(swapChainObjects, device);
   destroyLogicalDevice(device);

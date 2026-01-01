@@ -14,8 +14,11 @@ void bindGraphicsPipeline(VkCommandBuffer commandBuffer, VkPipeline pipeline);
 VkShaderModule createShaderModule(VkDevice device, const std::vector<char> &code);
 void destroyShaderModule(VkShaderModule shaderModule, VkDevice device);
 
-VkPipelineLayout createPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, VkDevice device);
+VkPipelineLayout createPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, VkDevice device, VkPushConstantRange *pushConstantRanges = nullptr);
+VkPipelineLayout createPipelineLayout(std::vector<VkDescriptorSetLayout> &descriptorSetLayouts, VkDevice device, VkPushConstantRange *pushConstantRanges = nullptr);
 void destroyPipelineLayout(VkPipelineLayout pipelineLayout, VkDevice device);
+
+VkPushConstantRange createPushConstantInfo(size_t size, VkShaderStageFlagBits stage, int offset = 0);
 
 VkPipelineShaderStageCreateInfo createShaderStageInfo(VkShaderModule shaderModule, VkShaderStageFlagBits stage);
 VkPipelineDynamicStateCreateInfo createDynamicStateInfo();

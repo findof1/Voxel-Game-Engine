@@ -10,6 +10,8 @@
 #include "ECS/components.hpp"
 #include "mesh.hpp"
 
+constexpr uint32_t MAX_CHUNKS = 32768;
+
 class VoxelSystem : public System
 {
 public:
@@ -25,7 +27,7 @@ private:
 
     void UnloadDistantChunks(const glm::ivec3 &playerChunk);
     bool ChunkExists(const glm::ivec3 &coord);
-    void CreateChunk(const glm::ivec3 &coord);
+    void CreateChunk(const glm::ivec3 &coord, int lod);
 
     void GenerateVoxelData(Entity chunk); // World Generation Logic
 

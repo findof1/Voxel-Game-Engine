@@ -1,10 +1,19 @@
 #version 450
 
-layout(binding = 0) uniform UniformBufferObject {
-  mat4 model;
+layout(set = 0, binding = 0) uniform UniformBufferObject {
   mat4 view;
   mat4 proj;
 } ubo;
+
+layout(set = 1, binding = 0) readonly buffer ChunkBuffer {
+mat4 models[];
+}
+chunks;
+
+layout(push_constant) uniform PushConstants {
+int id;
+}
+pc;
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec2 inTexCoord;
@@ -14,7 +23,7 @@ layout(location = 0) out vec2 fragTexCoord;
 layout(location = 1) flat out uint fragTexIndex;
 
 void main() {
-  gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
-  fragTexCoord = inTexCoord;
-  fragTexIndex = inTexIndex;
+gl_Position = ubo.proj * ubo.view * chunks.models[pc.id] * vec4(inPosition, 1.0);
+fragTexCoord = inTexCoord;
+fragTexIndex = inTexIndex;
 }

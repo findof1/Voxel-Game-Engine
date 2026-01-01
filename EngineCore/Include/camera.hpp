@@ -15,6 +15,11 @@ enum CameraMovement
   DOWN
 };
 
+struct Frustum
+{
+  glm::vec4 planes[6]; // left, right, top, bottom, near, far
+};
+
 class Camera
 {
 public:
@@ -138,6 +143,56 @@ public:
       Zoom = 1.0f;
     if (Zoom > 90.0f)
       Zoom = 90.0f;
+  }
+
+  Frustum extractFrustumPlanes(const glm::mat4 &viewProj) const
+  {
+    Frustum frustum;
+    glm::mat4 m = viewProj;
+
+    frustum.planes[0] = glm::vec4(
+        m[0][3] + m[0][0],
+        m[1][3] + m[1][0],
+        m[2][3] + m[2][0],
+        m[3][3] + m[3][0]);
+
+    frustum.planes[1] = glm::vec4(
+        m[0][3] - m[0][0],
+        m[1][3] - m[1][0],
+        m[2][3] - m[2][0],
+        m[3][3] - m[3][0]);
+
+    frustum.planes[2] = glm::vec4(
+        m[0][3] + m[0][1],
+        m[1][3] + m[1][1],
+        m[2][3] + m[2][1],
+        m[3][3] + m[3][1]);
+
+    frustum.planes[3] = glm::vec4(
+        m[0][3] - m[0][1],
+        m[1][3] - m[1][1],
+        m[2][3] - m[2][1],
+        m[3][3] - m[3][1]);
+
+    frustum.planes[4] = glm::vec4(
+        m[0][3] + m[0][2],
+        m[1][3] + m[1][2],
+        m[2][3] + m[2][2],
+        m[3][3] + m[3][2]);
+
+    frustum.planes[5] = glm::vec4(
+        m[0][3] - m[0][2],
+        m[1][3] - m[1][2],
+        m[2][3] - m[2][2],
+        m[3][3] - m[3][2]);
+
+    for (int i = 0; i < 6; i++)
+    {
+      float length = glm::length(glm::vec3(frustum.planes[i]));
+      frustum.planes[i] /= length;
+    }
+
+    return frustum;
   }
 
 private:

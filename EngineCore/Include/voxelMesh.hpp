@@ -11,6 +11,8 @@ class Renderer;
 class VoxelMesh
 {
 public:
+  Texture texture;
+
   VoxelMesh(Renderer &renderer);
 
   ~VoxelMesh()
@@ -22,14 +24,11 @@ public:
 
   void Cleanup();
 
-  void UpdateUBO(const UniformBufferObject &ubo);
-
   void Draw();
 
   VkBuffer GetVertexBuffer() const;
   VkBuffer GetIndexBuffer() const;
   uint32_t GetIndexCount() const;
-  VkDescriptorSet GetDescriptorSet(uint32_t frameIndex) const;
 
 private:
   Renderer &renderer;
@@ -39,12 +38,6 @@ private:
 
   VkBuffer indexBuffer = VK_NULL_HANDLE;
   VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
-
-  std::vector<VkBuffer> uniformBuffers;
-  std::vector<VkDeviceMemory> uniformBuffersMemory;
-  std::vector<void *> uniformBuffersMapped;
-
-  std::vector<VkDescriptorSet> descriptorSets;
 
   std::vector<VoxelVertex> vertices;
   std::vector<uint16_t> indices;

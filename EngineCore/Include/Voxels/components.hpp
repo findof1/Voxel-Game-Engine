@@ -38,6 +38,8 @@ struct VoxelMeshComponent
     VoxelMeshComponent(std::shared_ptr<VoxelMesh> m) : mesh(m) {}
 };
 
+static uint32_t nextGPUIndex = 0;
+
 struct ChunkComponent // turns an entity into a voxel chunk
 {
     std::vector<Voxel> voxelData; // might want to turn it into a custom allocated type because the size stays constant after initialization
@@ -47,9 +49,42 @@ struct ChunkComponent // turns an entity into a voxel chunk
 
     glm::ivec3 worldPosition;
 
+    uint32_t gpuIndex = -1; // used for indexing into storage buffer for model matrix
+
     ChunkComponent()
     {
+        chunkWidth = 0;
+        chunkLength = 0;
+        chunkHeight = 0;
     }
+
+    ChunkComponent(int w, int l, int h, uint32_t uniqueIndex)
+    {
+        chunkWidth = w;
+        chunkLength = l;
+        chunkHeight = h;
+        gpuIndex = uniqueIndex;
+    }
+
+    int getWidth()
+    {
+        return chunkWidth;
+    }
+
+    int getLength()
+    {
+        return chunkLength;
+    }
+
+    int getHeight()
+    {
+        return chunkHeight;
+    }
+
+private:
+    int chunkWidth;
+    int chunkLength;
+    int chunkHeight;
 };
 
 struct WorldComponent

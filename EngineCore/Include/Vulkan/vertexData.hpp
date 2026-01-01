@@ -46,6 +46,11 @@ struct Vertex
   }
 };
 
+struct PushConstants
+{
+  alignas(16) glm::mat4 model;
+};
+
 struct VoxelVertex
 {
   glm::vec3 pos;
@@ -84,4 +89,9 @@ struct VoxelVertex
 
     return attributeDescriptions;
   }
+};
+
+struct VoxelPushConstants
+{
+  alignas(16) int objectId;
 };

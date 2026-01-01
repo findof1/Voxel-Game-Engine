@@ -72,16 +72,30 @@ void bindGraphicsPipeline(VkCommandBuffer commandBuffer, VkPipeline pipeline)
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
-VkPipelineLayout createPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, VkDevice device)
+VkPipelineLayout createPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, VkDevice device, VkPushConstantRange *pushConstantRanges)
+{
+  std::vector<VkDescriptorSetLayout> descriptorSetLayouts = {descriptorSetLayout};
+  return createPipelineLayout(descriptorSetLayouts, device, pushConstantRanges);
+}
+
+VkPipelineLayout createPipelineLayout(std::vector<VkDescriptorSetLayout> &descriptorSetLayouts, VkDevice device, VkPushConstantRange *pushConstantRanges)
 {
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 1;
-  pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+  pipelineLayoutInfo.setLayoutCount = descriptorSetLayouts.size();
+  pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
 
   // no push constants for now, but they will be useful later
-  pipelineLayoutInfo.pushConstantRangeCount = 0;
-  pipelineLayoutInfo.pPushConstantRanges = nullptr;
+  if (pushConstantRanges == nullptr)
+  {
+    pipelineLayoutInfo.pushConstantRangeCount = 0;
+    pipelineLayoutInfo.pPushConstantRanges = nullptr;
+  }
+  else
+  {
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges;
+  }
 
   VkPipelineLayout pipelineLayout;
   if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
@@ -101,6 +115,15 @@ void destroyPipelineLayout(VkPipelineLayout pipelineLayout, VkDevice device)
   {
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
   }
+}
+
+VkPushConstantRange createPushConstantInfo(size_t size, VkShaderStageFlagBits stage, int offset)
+{
+  VkPushConstantRange pushRange{};
+  pushRange.stageFlags = stage;
+  pushRange.offset = offset;
+  pushRange.size = size;
+  return pushRange;
 }
 
 VkShaderModule createShaderModule(VkDevice device, const std::vector<char> &code)

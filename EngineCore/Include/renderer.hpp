@@ -17,6 +17,7 @@
 #include "vulkanBufferUtils.hpp"
 #include "vulkanDescriptors.hpp"
 #include "vulkanImages.hpp"
+#include "uniformData.hpp"
 
 #include "texture.hpp"
 
@@ -50,13 +51,30 @@ public:
   VkQueue presentQueue;
   SwapChainObjects swapChainObjects;
   VkRenderPass renderPass;
-  VkDescriptorSetLayout descriptorSetLayout;
+
+  VkDescriptorSetLayout cameraSetLayout;
+  VkDescriptorSetLayout imageSetLayout;
+  VkDescriptorSetLayout voxelSetLayout;
+
   VkDescriptorPool descriptorPool;
   VkPipelineLayout pipelineLayout;
   VkPipeline pipeline;
+  VkPipelineLayout voxelPipelineLayout;
   VkPipeline voxelPipeline;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
+
+  std::vector<VkBuffer> uniformBuffers; // used for camera matrix
+  std::vector<VkDeviceMemory> uniformBuffersMemory;
+  std::vector<void *> uniformBuffersMapped;
+
+  VkBuffer storageBuffer; // used for voxels model matrix
+  VkDeviceMemory storageBufferMemory;
+  void *storageBufferMapped;
+  ShaderBufferObject *storageBufferAccess;
+
+  std::vector<VkDescriptorSet> cameraSets;
+  VkDescriptorSet voxelSet;
 
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -71,6 +89,7 @@ public:
   Texture createTexutre(const std::string &name, const std::string &filePath);
   Texture createTexutreArray(const std::string &name, const std::vector<std::string> filePaths);
   Texture getTexture(const std::string &name);
+  Texture *getTexturePointer(const std::string &name);
 
   Renderer(GLFWwindow *window);
   void init();
@@ -79,6 +98,8 @@ public:
   void startRendering(uint32_t imageIndex);
   void endRendering();
   void cleanup();
+
+  void createDescriptorSets();
 
 private:
   uint32_t imageIndex;

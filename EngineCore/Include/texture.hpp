@@ -8,4 +8,6 @@ struct Texture
   VkDeviceMemory memory;
   VkImageView view;
   VkSampler sampler;
+
+  VkDescriptorSet imageSet;
 };

@@ -1,7 +1,10 @@
 #include "meshingSystem.hpp"
+#include "renderer.hpp"
 
-void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint16_t> &indices, const glm::ivec3 &pos, const glm::ivec3 &size, int axis, bool backFace, uint16_t texture)
+void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint16_t> &indices, glm::ivec3 pos, glm::ivec3 size, int axis, bool backFace, uint16_t texture, int step)
 {
+  pos *= step;
+  size *= step;
   int u = (axis + 1) % 3;
   int v = (axis + 2) % 3;
 
@@ -10,7 +13,6 @@ void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint16_t> &indices
   glm::vec3 du(0.0f), dv(0.0f);
   du[u] = size[u];
   dv[v] = size[v];
-
   glm::vec3 v0 = p;
   glm::vec3 v1 = p + du;
   glm::vec3 v2 = p + du + dv;
@@ -20,24 +22,24 @@ void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint16_t> &indices
   {
     if (axis == 0)
     {
-      v0 += glm::vec3(1, 0, 0);
-      v1 += glm::vec3(1, 0, 0);
-      v2 += glm::vec3(1, 0, 0);
-      v3 += glm::vec3(1, 0, 0);
+      v0 += glm::vec3(step, 0, 0);
+      v1 += glm::vec3(step, 0, 0);
+      v2 += glm::vec3(step, 0, 0);
+      v3 += glm::vec3(step, 0, 0);
     }
     if (axis == 1)
     {
-      v0 += glm::vec3(0, 1, 0);
-      v1 += glm::vec3(0, 1, 0);
-      v2 += glm::vec3(0, 1, 0);
-      v3 += glm::vec3(0, 1, 0);
+      v0 += glm::vec3(0, step, 0);
+      v1 += glm::vec3(0, step, 0);
+      v2 += glm::vec3(0, step, 0);
+      v3 += glm::vec3(0, step, 0);
     }
     if (axis == 2)
     {
-      v0 += glm::vec3(0, 0, 1);
-      v1 += glm::vec3(0, 0, 1);
-      v2 += glm::vec3(0, 0, 1);
-      v3 += glm::vec3(0, 0, 1);
+      v0 += glm::vec3(0, 0, step);
+      v1 += glm::vec3(0, 0, step);
+      v2 += glm::vec3(0, 0, step);
+      v3 += glm::vec3(0, 0, step);
     }
   }
 
@@ -84,13 +86,17 @@ int Index3D(int x, int y, int z, int w, int l, int h)
   return x + w * z + w * l * y;
 }
 
-bool IsSolid(const std::vector<Voxel> &voxels, const BlockRegistry &registry, int x, int y, int z, int w, int h, int d)
+bool IsSolid(const std::vector<Voxel> &voxels, const BlockRegistry &registry, int x, int y, int z, int step, int w, int h, int d)
 {
-  if (x < 0 || y < 0 || z < 0 ||
-      x >= w || y >= h || z >= d)
+  int sx = x * step;
+  int sy = y * step;
+  int sz = z * step;
+
+  if (sx < 0 || sy < 0 || sz < 0 ||
+      sx >= w || sy >= h || sz >= d)
     return false;
 
-  uint32_t type = voxels[Index3D(x, y, z, w, d, h)].type;
+  uint32_t type = voxels[Index3D(sx, sy, sz, w, d, h)].type;
   return registry.blocks[type].visible;
 }
 
@@ -120,10 +126,11 @@ void MeshingSystem::Update(Texture voxelTextures, Renderer &renderer)
 void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity chunkEntity)
 {
   auto &chunk = gCoordinator->GetComponent<ChunkComponent>(chunkEntity);
+  const int step = 1 << chunk.chunkLOD; // step doubles for each lod
 
-  const int W = world.chunkWidth;
-  const int H = world.chunkHeight;
-  const int D = world.chunkLength;
+  const int W = world.chunkWidth / step;
+  const int H = world.chunkHeight / step;
+  const int D = world.chunkLength / step;
 
   auto &voxels = chunk.voxelData;
   auto &registry = world.registry;
@@ -157,14 +164,14 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
           x[u] = y[u] = i;
           x[v] = y[v] = j;
 
-          bool a = IsSolid(voxels, registry, x[0], x[1], x[2], W, H, D);
-          bool b = IsSolid(voxels, registry, y[0], y[1], y[2], W, H, D);
+          bool a = IsSolid(voxels, registry, x[0], x[1], x[2], step, world.chunkWidth, world.chunkHeight, world.chunkLength);
+          bool b = IsSolid(voxels, registry, y[0], y[1], y[2], step, world.chunkWidth, world.chunkHeight, world.chunkLength);
 
           if (a == b)
             mask[n++] = 0;
           else
           {
-            int idx = a ? Index3D(x[0], x[1], x[2], W, D, H) : Index3D(y[0], y[1], y[2], W, D, H);
+            int idx = a ? Index3D(x[0] * step, x[1] * step, x[2] * step, world.chunkWidth, world.chunkLength, world.chunkHeight) : Index3D(y[0] * step, y[1] * step, y[2] * step, world.chunkWidth, world.chunkLength, world.chunkHeight);
 
             mask[n++] = a ? (idx + 1) : -(idx + 1);
           }
@@ -229,7 +236,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
           size[v] = h;
           size[axis] = 1;
 
-          EmitQuad(vertices, indices, pos, size, axis, c < 0, tex);
+          EmitQuad(vertices, indices, pos, size, axis, c < 0, tex, step);
 
           i += w;
           n += w;
@@ -250,6 +257,8 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
     TransformComponent chunkTransform{};
     chunkTransform.translation = {chunk.worldPosition.x * world.chunkWidth, -chunk.worldPosition.y * world.chunkHeight, chunk.worldPosition.z * world.chunkLength};
     chunkTransform.scale = {1.0f, 1.0f, 1.0f};
+    renderer.storageBufferAccess[chunk.gpuIndex].model = chunkTransform.GetMatrix();
+
     gCoordinator->AddComponent(chunkEntity, chunkTransform);
     auto mesh = std::make_shared<VoxelMesh>(renderer);
     mesh->Init(voxelTextures, vertices, indices);

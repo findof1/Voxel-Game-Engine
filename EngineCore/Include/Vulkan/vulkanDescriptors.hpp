@@ -18,13 +18,13 @@ VkDescriptorSetLayoutBinding combinedImageSamplerBinding(uint32_t binding, VkSha
 VkDescriptorPool createDescriptorPool(VkDevice device);
 void destroyDescriptorPool(VkDescriptorPool descriptorPool, VkDevice device);
 
-void createDescriptorSets(std::vector<VkDescriptorSet> &descriptorSets, std::vector<VkBuffer> &uniformBuffers, VkImageView textureImageView, VkSampler textureSampler, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDevice device);
-
 VkWriteDescriptorSet writeStorageBuffer(VkDescriptorSet dstSet, uint32_t binding, const VkDescriptorBufferInfo *bufferInfo);
 VkWriteDescriptorSet writeUniformBuffer(VkDescriptorSet dstSet, uint32_t binding, const VkDescriptorBufferInfo *bufferInfo);
 VkWriteDescriptorSet writeCombinedImageSampler(VkDescriptorSet dstSet, uint32_t binding, const VkDescriptorImageInfo *imageInfo);
 void allocateDescriptorSets(std::vector<VkDescriptorSet> &descriptorSets, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDevice device, int count);
+void allocateDescriptorSet(VkDescriptorSet *descriptorSet, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDevice device);
 
 void updateDescriptorSets(VkDevice device, std::span<const VkWriteDescriptorSet> descriptorWrites);
 
-void bindDescriptorSets(VkDescriptorSet descriptorSet, VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout);
+void bindDescriptorSet(VkDescriptorSet descriptorSet, VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int firstSet = 0, int setCount = 1);
+void bindDescriptorSets(std::vector<VkDescriptorSet> &descriptorSets, VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout);
