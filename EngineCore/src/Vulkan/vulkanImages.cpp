@@ -1,4 +1,5 @@
 #include <stb_image.h>
+#include <cstring>
 
 #include "vulkanImages.hpp"
 #include "vulkanBufferUtils.hpp"

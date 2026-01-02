@@ -1,3 +1,4 @@
+#include <cstring>
 #include "renderSystem.hpp"
 #include "renderer.hpp"
 #include "mesh.hpp"
