@@ -14,7 +14,7 @@ glm::mat4 AiToGlmMat(const aiMatrix4x4 &mat)
 std::shared_ptr<Mesh> LoadAiMesh(Renderer &renderer, aiMesh *mesh, Texture texture)
 {
   std::vector<Vertex> vertices;
-  std::vector<uint16_t> indices;
+  std::vector<uint32_t> indices;
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++)
   {

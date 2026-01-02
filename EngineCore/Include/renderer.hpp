@@ -18,6 +18,7 @@
 #include "vulkanDescriptors.hpp"
 #include "vulkanImages.hpp"
 #include "uniformData.hpp"
+#include "allocator.hpp"
 
 #include "texture.hpp"
 
@@ -38,6 +39,33 @@ const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = true;
 #endif
+
+struct MeshDrawInfo
+{
+  int firstVertex;
+  int vertexCount;
+  int firstIndex;
+  int indexCount;
+  int indirectIndex;
+};
+
+struct VoxelBuffers
+{
+  std::vector<Vertex> globalVoxelVertices;
+  std::vector<uint32_t> globalVoxelIndices;
+
+  FreeListAllocator vertexAlloc;
+  VkBuffer vertexBuffer;
+  VkDeviceMemory vertexBufferMemory;
+
+  FreeListAllocator indexAlloc;
+  VkBuffer indexBuffer;
+  VkDeviceMemory indexBufferMemory;
+
+  VkBuffer indirectBuffer;
+  VkDeviceMemory indirectBufferMemory;
+  std::vector<VkDrawIndexedIndirectCommand> indirectCommands;
+};
 
 class Renderer
 {
@@ -72,6 +100,8 @@ public:
   VkDeviceMemory storageBufferMemory;
   void *storageBufferMapped;
   ShaderBufferObject *storageBufferAccess;
+
+  VoxelBuffers voxelBuffers;
 
   std::vector<VkDescriptorSet> cameraSets;
   VkDescriptorSet voxelSet;

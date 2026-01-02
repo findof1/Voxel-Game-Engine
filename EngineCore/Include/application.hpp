@@ -13,6 +13,7 @@
 #include "Voxels/components.hpp"
 #include "voxelSystem.hpp"
 #include "meshingSystem.hpp"
+#include "profiler.hpp"
 
 class Application
 {

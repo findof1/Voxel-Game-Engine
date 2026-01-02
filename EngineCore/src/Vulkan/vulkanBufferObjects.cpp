@@ -35,7 +35,7 @@ void bindVertexBuffer(VkBuffer vertexBuffer, VkCommandBuffer commandBuffer)
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 }
 
-void createIndexBuffer(VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer, const std::vector<uint16_t> &vertices, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
+void createIndexBuffer(VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer, const std::vector<uint32_t> &vertices, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
 {
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -57,7 +57,7 @@ void createIndexBuffer(VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer,
 
 void bindIndexBuffer(VkBuffer indexBuffer, VkCommandBuffer commandBuffer)
 {
-  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 void createUniformBuffers(std::vector<VkBuffer> &uniformBuffers, std::vector<VkDeviceMemory> &uniformBuffersMemory, std::vector<void *> &uniformBuffersMapped, VkDevice device, VkPhysicalDevice physicalDevice)

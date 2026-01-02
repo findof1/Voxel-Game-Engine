@@ -13,7 +13,7 @@ void createVertexBuffer(VkDeviceMemory &vertexBufferMemory, VkBuffer &vertexBuff
 
 void bindVertexBuffer(VkBuffer vertexBuffer, VkCommandBuffer commandBuffer);
 
-void createIndexBuffer(VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer, const std::vector<uint16_t> &vertices, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice);
+void createIndexBuffer(VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer, const std::vector<uint32_t> &vertices, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice);
 
 void bindIndexBuffer(VkBuffer indexBuffer, VkCommandBuffer commandBuffer);
 

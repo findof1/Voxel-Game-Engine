@@ -8,7 +8,7 @@ Mesh::Mesh(Renderer &renderer) : renderer(renderer)
 {
 }
 
-void Mesh::Init(Texture texture, const std::vector<Vertex> &verts, const std::vector<uint16_t> &inds)
+void Mesh::Init(Texture texture, const std::vector<Vertex> &verts, const std::vector<uint32_t> &inds)
 {
   this->texture = texture;
   vertices = verts;

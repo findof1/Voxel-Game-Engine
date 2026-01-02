@@ -9,7 +9,7 @@ VoxelMesh::VoxelMesh(Renderer &renderer) : renderer(renderer)
 {
 }
 
-void VoxelMesh::Init(Texture texture, const std::vector<VoxelVertex> &verts, const std::vector<uint16_t> &inds)
+void VoxelMesh::Init(Texture texture, const std::vector<VoxelVertex> &verts, const std::vector<uint32_t> &inds)
 {
   this->texture = texture;
   vertices = verts;

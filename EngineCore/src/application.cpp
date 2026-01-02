@@ -40,7 +40,7 @@ const std::vector<Vertex> vertices = {
     {{0.5f, -0.5f, 0.5f}, {1, 0, 1}, {1, 1}},
     {{-0.5f, -0.5f, 0.5f}, {1, 0, 1}, {0, 1}}};
 
-const std::vector<uint16_t> indices = {
+const std::vector<uint32_t> indices = {
     0, 1, 2, 2, 3, 0,
     4, 5, 6, 6, 7, 4,
     8, 9, 10, 10, 11, 8,
@@ -105,9 +105,9 @@ void Application::run()
   Entity world = coordinator->CreateEntity();
   {
     WorldComponent worldComponent{};
-    worldComponent.chunkHeight = 32;
-    worldComponent.chunkWidth = 32;
-    worldComponent.chunkLength = 32;
+    worldComponent.chunkHeight = 16;
+    worldComponent.chunkWidth = 16;
+    worldComponent.chunkLength = 16;
     worldComponent.renderRadius = 2;
     worldComponent.simulationRadius = 2;
     worldComponent.seed = 213;

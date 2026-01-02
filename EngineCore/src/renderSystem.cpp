@@ -5,6 +5,8 @@
 #include "Voxels/components.hpp"
 #include "voxelMesh.hpp"
 
+#include "profiler.hpp"
+
 void RenderSystem::Init(std::shared_ptr<Coordinator> coordinator, int screenWidth, int screenHeight)
 {
   gCoordinator = coordinator;
@@ -40,19 +42,19 @@ bool FrustumIntersects(const Frustum &frustum, const glm::vec3 &center, const gl
 
 void RenderSystem::RenderScene(Renderer &renderer, float deltaTime, const Camera &camera)
 {
-  /*
+
   glm::mat4 view = camera.getViewMatrix();
   glm::mat4 proj = camera.getProjectionMatrix(renderer.swapChainObjects.swapChainExtent.width / (float)renderer.swapChainObjects.swapChainExtent.height);
   glm::mat4 viewProj = proj * view;
-  Frustum frustum = camera.extractFrustumPlanes(viewProj);*/
+  Frustum frustum = camera.extractFrustumPlanes(viewProj);
 
   VkExtent2D extent = renderer.swapChainObjects.swapChainExtent;
 
   float aspect = extent.width / (float)extent.height;
 
   UniformBufferObject ubo{};
-  ubo.view = camera.getViewMatrix();
-  ubo.proj = camera.getProjectionMatrix(aspect);
+  ubo.view = view;
+  ubo.proj = proj;
 
   uint32_t currentFrame = renderer.currentFrame;
   VkCommandBuffer cmdBuff = renderer.commandBuffers[currentFrame];
@@ -60,19 +62,21 @@ void RenderSystem::RenderScene(Renderer &renderer, float deltaTime, const Camera
 
   memcpy(renderer.uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo));
 
+  {
+    bindGraphicsPipeline(cmdBuff, renderer.pipeline);
+
+    VkViewport viewport = makeViewport(extent);
+    setViewport(cmdBuff, viewport);
+
+    VkRect2D scissor = makeScissor(extent);
+    setScissor(cmdBuff, scissor);
+  }
+
   for (auto const &entity : mEntities)
   {
     if (gCoordinator->HasComponent<MeshComponent>(entity))
     {
       auto &mesh = gCoordinator->GetComponent<MeshComponent>(entity);
-
-      bindGraphicsPipeline(cmdBuff, renderer.pipeline);
-
-      VkViewport viewport = makeViewport(extent);
-      setViewport(cmdBuff, viewport);
-
-      VkRect2D scissor = makeScissor(extent);
-      setScissor(cmdBuff, scissor);
 
       std::vector<VkDescriptorSet> sets = {cameraSet, mesh.mesh->texture.imageSet};
       bindDescriptorSets(sets, cmdBuff, renderer.pipelineLayout);
@@ -84,34 +88,34 @@ void RenderSystem::RenderScene(Renderer &renderer, float deltaTime, const Camera
 
       mesh.mesh->Draw();
     }
+  }
 
+  {
+    bindGraphicsPipeline(cmdBuff, renderer.voxelPipeline);
+
+    VkViewport viewport = makeViewport(extent);
+    setViewport(cmdBuff, viewport);
+
+    VkRect2D scissor = makeScissor(extent);
+    setScissor(cmdBuff, scissor);
+  }
+
+  for (auto const &entity : mEntities)
+  {
     if (gCoordinator->HasComponent<VoxelMeshComponent>(entity) && gCoordinator->HasComponent<ChunkComponent>(entity))
     {
-      /*
-      if (gCoordinator->HasComponent<ChunkComponent>(entity))
-      {
-        auto &chunk = gCoordinator->GetComponent<ChunkComponent>(entity);
-        int chunkWidth = chunk.getWidth();
-        int chunkLength = chunk.getLength();
-        int chunkHeight = chunk.getHeight();
-        glm::vec3 chunkCenter = glm::vec3(chunk.worldPosition.x * chunkWidth + chunkWidth / 2.0f, (-chunk.worldPosition.y * chunkHeight + chunkHeight / 2.0f), chunk.worldPosition.z * chunkLength + chunkLength / 2.0f);
+      auto &chunk = gCoordinator->GetComponent<ChunkComponent>(entity);
+      int chunkWidth = chunk.getWidth();
+      int chunkLength = chunk.getLength();
+      int chunkHeight = chunk.getHeight();
+      glm::vec3 chunkCenter = glm::vec3(chunk.worldPosition.x * chunkWidth + chunkWidth / 2.0f, (-chunk.worldPosition.y * chunkHeight + chunkHeight / 2.0f), chunk.worldPosition.z * chunkLength + chunkLength / 2.0f);
 
-        glm::vec3 chunkHalf = glm::vec3(chunkWidth / 2.0f, chunkHeight / 2.0f, chunkLength / 2.0f);
+      glm::vec3 chunkHalf = glm::vec3(chunkWidth / 2.0f, chunkHeight / 2.0f, chunkLength / 2.0f);
 
-        if (!FrustumIntersects(frustum, chunkCenter, chunkHalf))
-          continue; // Skip rendering this chunk
-      }*/
+      if (!FrustumIntersects(frustum, chunkCenter, chunkHalf))
+        continue; // Skip rendering this chunk
 
       auto &mesh = gCoordinator->GetComponent<VoxelMeshComponent>(entity);
-      auto &chunk = gCoordinator->GetComponent<ChunkComponent>(entity);
-
-      bindGraphicsPipeline(cmdBuff, renderer.voxelPipeline);
-
-      VkViewport viewport = makeViewport(extent);
-      setViewport(cmdBuff, viewport);
-
-      VkRect2D scissor = makeScissor(extent);
-      setScissor(cmdBuff, scissor);
 
       std::vector<VkDescriptorSet> sets = {cameraSet, renderer.voxelSet, mesh.mesh->texture.imageSet};
       bindDescriptorSets(sets, cmdBuff, renderer.voxelPipelineLayout);

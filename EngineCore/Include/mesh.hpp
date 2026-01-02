@@ -20,7 +20,7 @@ public:
     Cleanup();
   };
 
-  void Init(Texture texture, const std::vector<Vertex> &verts, const std::vector<uint16_t> &inds);
+  void Init(Texture texture, const std::vector<Vertex> &verts, const std::vector<uint32_t> &inds);
 
   void Cleanup();
 
@@ -40,5 +40,5 @@ private:
   VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
 
   std::vector<Vertex> vertices;
-  std::vector<uint16_t> indices;
+  std::vector<uint32_t> indices;
 };

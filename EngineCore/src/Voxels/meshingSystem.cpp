@@ -1,7 +1,7 @@
 #include "meshingSystem.hpp"
 #include "renderer.hpp"
 
-void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint16_t> &indices, glm::ivec3 pos, glm::ivec3 size, int axis, bool backFace, uint16_t texture, int step)
+void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint32_t> &indices, glm::ivec3 pos, glm::ivec3 size, int axis, bool backFace, uint16_t texture, int step)
 {
   pos *= step;
   size *= step;
@@ -136,7 +136,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
   auto &registry = world.registry;
 
   std::vector<VoxelVertex> vertices;
-  std::vector<uint16_t> indices;
+  std::vector<uint32_t> indices;
 
   glm::vec3 chunkWorldPos = glm::vec3(chunk.worldPosition);
 

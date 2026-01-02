@@ -47,8 +47,8 @@ target_link_libraries(GameEngine
     glfw3
     vulkan-1
     freetype
-    LinearMath
-    ws2_32
+    LinearMath #optional
+    ws2_32  #optional
     assimp
 )
 
