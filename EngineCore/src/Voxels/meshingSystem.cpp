@@ -261,7 +261,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
 
     gCoordinator->AddComponent(chunkEntity, chunkTransform);
     auto mesh = std::make_shared<VoxelMesh>(renderer);
-    mesh->Init(voxelTextures, vertices, indices);
+    mesh->Init(voxelTextures, vertices, indices, chunk.gpuIndex);
     gCoordinator->AddComponent(chunkEntity, VoxelMeshComponent{mesh});
   }
 }

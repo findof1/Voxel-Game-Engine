@@ -91,7 +91,10 @@ struct VoxelVertex
   }
 };
 
+/*
+//Unused
+
 struct VoxelPushConstants
 {
   alignas(16) int objectId;
-};
+};*/

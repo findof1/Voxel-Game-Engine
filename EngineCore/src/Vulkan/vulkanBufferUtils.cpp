@@ -50,12 +50,13 @@ void destroyBuffer(VkDeviceMemory bufferMemory, VkBuffer buffer, VkDevice device
   }
 }
 
-void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device)
+void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkDeviceSize dstOffset)
 {
   VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool, device);
 
   VkBufferCopy copyRegion{};
   copyRegion.size = size;
+  copyRegion.dstOffset = dstOffset;
   vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
   endSingleTimeCommands(commandBuffer, commandPool, graphicsQueue, device);

@@ -41,9 +41,9 @@ void Renderer::init()
 
   pipeline = createGraphicsPipeline(pipelineLayout, renderPass, swapChainObjects, device, "shaders/vert.spv", "shaders/frag.spv", &vertexBinding, vertexAttributes);
 
-  VkPushConstantRange voxelPushConstantRanges = createPushConstantInfo(sizeof(VoxelPushConstants), VK_SHADER_STAGE_VERTEX_BIT);
+  // VkPushConstantRange voxelPushConstantRanges = createPushConstantInfo(sizeof(VoxelPushConstants), VK_SHADER_STAGE_VERTEX_BIT);
   std::vector<VkDescriptorSetLayout> voxelSetLayouts = {cameraSetLayout, voxelSetLayout, imageSetLayout};
-  voxelPipelineLayout = createPipelineLayout(voxelSetLayouts, device, &voxelPushConstantRanges);
+  voxelPipelineLayout = createPipelineLayout(voxelSetLayouts, device);
   auto voxelVertexBinding = VoxelVertex::getBindingDescription();
   auto voxelVertexAttributes = VoxelVertex::getAttributeDescriptions();
 
@@ -60,6 +60,15 @@ void Renderer::init()
   storageBufferAccess = static_cast<ShaderBufferObject *>(storageBufferMapped);
   createUniformBuffers(uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, device, physicalDevice);
   createDescriptorSets();
+
+  createEmptyVertexBuffer(voxelBuffers.vertexBufferMemory, voxelBuffers.vertexBuffer, MAX_VERTICES * sizeof(VoxelVertex), commandPool, graphicsQueue, device, physicalDevice);
+  voxelBuffers.vertexAlloc.init(MAX_VERTICES);
+
+  createEmptyIndexBuffer(voxelBuffers.indexBufferMemory, voxelBuffers.indexBuffer, MAX_VERTICES * sizeof(uint32_t), commandPool, graphicsQueue, device, physicalDevice);
+  voxelBuffers.indexAlloc.init(MAX_VERTICES);
+
+  createEmptyIndirectBuffer(voxelBuffers.indirectBufferMemory, voxelBuffers.indirectBuffer, MAX_CHUNKS * sizeof(VkDrawIndexedIndirectCommand), commandPool, graphicsQueue, device, physicalDevice);
+  voxelBuffers.indirectAlloc.init(MAX_CHUNKS);
 
   imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -258,6 +267,9 @@ void Renderer::cleanup()
 
   vkFreeDescriptorSets(device, descriptorPool, static_cast<uint32_t>(cameraSets.size()), cameraSets.data());
   vkFreeDescriptorSets(device, descriptorPool, 1, &voxelSet);
+
+  destroyBuffer(voxelBuffers.indexBufferMemory, voxelBuffers.indexBuffer, device);
+  destroyBuffer(voxelBuffers.vertexBufferMemory, voxelBuffers.vertexBuffer, device);
 
   for (auto fence : inFlightFences)
   {

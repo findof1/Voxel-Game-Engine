@@ -23,50 +23,51 @@ void VoxelSystem::Update(float deltaTime, const glm::vec3 &playerPos)
         if (!ChunkExists(coord))
           CreateChunk(coord, 0);
       }
+
   /*
 // lod 1
 for (int x = -radius * 2; x <= radius * 2; ++x)
-  for (int y = -2; y <= 2; ++y)
-    for (int z = -radius * 2; z <= radius * 2; ++z)
-    {
-      glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+for (int y = -2; y <= 2; ++y)
+  for (int z = -radius * 2; z <= radius * 2; ++z)
+  {
+    glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
-      if (!ChunkExists(coord))
-        CreateChunk(coord, 1);
-    }
+    if (!ChunkExists(coord))
+      CreateChunk(coord, 1);
+  }
 
 // lod 2
 for (int x = -radius * 4; x <= radius * 4; ++x)
-  for (int y = -2; y <= 2; ++y)
-    for (int z = -radius * 4; z <= radius * 4; ++z)
-    {
-      glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+for (int y = -2; y <= 2; ++y)
+  for (int z = -radius * 4; z <= radius * 4; ++z)
+  {
+    glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
-      if (!ChunkExists(coord))
-        CreateChunk(coord, 2);
-    }
+    if (!ChunkExists(coord))
+      CreateChunk(coord, 2);
+  }
 
 // lod 3
 for (int x = -radius * 6; x <= radius * 6; ++x)
-  for (int y = -2; y <= 2; ++y)
-    for (int z = -radius * 6; z <= radius * 6; ++z)
-    {
-      glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+for (int y = -2; y <= 2; ++y)
+  for (int z = -radius * 6; z <= radius * 6; ++z)
+  {
+    glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
-      if (!ChunkExists(coord))
-        CreateChunk(coord, 3);
-    }
+    if (!ChunkExists(coord))
+      CreateChunk(coord, 3);
+  }
 
 // lod 4
 for (int x = -radius * 8; x <= radius * 8; ++x)
-  for (int y = -2; y <= 2; ++y)
-    for (int z = -radius * 8; z <= radius * 8; ++z)
-    {
-      glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+for (int y = -2; y <= 2; ++y)
+  for (int z = -radius * 8; z <= radius * 8; ++z)
+  {
+    glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
-      if (!ChunkExists(coord))
-        CreateChunk(coord, 4);
-    }*/
+    if (!ChunkExists(coord))
+      CreateChunk(coord, 4);
+  }*/
 
   UnloadDistantChunks(playerChunk);
 }
@@ -82,9 +83,9 @@ void VoxelSystem::UnloadDistantChunks(const glm::ivec3 &playerChunk)
   {
     glm::ivec3 delta = chunkPos - playerChunk;
 
-    if (std::abs(delta.x) > radius * 8 + 1 ||
-        std::abs(delta.y) > radius * 8 + 1 ||
-        std::abs(delta.z) > radius * 8 + 1)
+    if (std::abs(delta.x) > radius * 2 + 1 ||
+        std::abs(delta.y) > radius * 2 + 1 ||
+        std::abs(delta.z) > radius * 2 + 1)
     {
       chunksToRemove.push_back(chunkPos);
     }

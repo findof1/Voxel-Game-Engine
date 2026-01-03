@@ -108,8 +108,8 @@ void Application::run()
     worldComponent.chunkHeight = 16;
     worldComponent.chunkWidth = 16;
     worldComponent.chunkLength = 16;
-    worldComponent.renderRadius = 2;
-    worldComponent.simulationRadius = 2;
+    worldComponent.renderRadius = 4;
+    worldComponent.simulationRadius = 4;
     worldComponent.seed = 213;
     coordinator->AddComponent(world, worldComponent);
   }

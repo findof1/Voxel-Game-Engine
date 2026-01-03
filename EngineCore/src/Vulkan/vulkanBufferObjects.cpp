@@ -11,6 +11,28 @@
 #include "renderer.hpp"
 #include "uniformData.hpp"
 
+void createEmptyVertexBuffer(VkDeviceMemory &vertexBufferMemory, VkBuffer &vertexBuffer, VkDeviceSize bufferSize, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory, device, physicalDevice);
+}
+
+void uploadToVertexBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, const void *srcData, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingMemory;
+
+  createBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory, device, physicalDevice);
+
+  void *data;
+  vkMapMemory(device, stagingMemory, 0, size, 0, &data);
+  memcpy(data, srcData, (size_t)size);
+  vkUnmapMemory(device, stagingMemory);
+
+  copyBuffer(stagingBuffer, dstBuffer, size, commandPool, graphicsQueue, device, dstOffset);
+
+  destroyBuffer(stagingMemory, stagingBuffer, device);
+}
+
 void createVertexBuffer(VkDeviceMemory &vertexBufferMemory, VkBuffer &vertexBuffer, VkDeviceSize bufferSize, const void *vertData, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
 {
 
@@ -35,6 +57,28 @@ void bindVertexBuffer(VkBuffer vertexBuffer, VkCommandBuffer commandBuffer)
   VkBuffer vertexBuffers[] = {vertexBuffer};
   VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+}
+
+void createEmptyIndexBuffer(VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer, VkDeviceSize bufferSize, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  createBuffer(bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory, device, physicalDevice);
+}
+
+void uploadToIndexBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, const void *srcData, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingMemory;
+
+  createBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory, device, physicalDevice);
+
+  void *data;
+  vkMapMemory(device, stagingMemory, 0, size, 0, &data);
+  memcpy(data, srcData, (size_t)size);
+  vkUnmapMemory(device, stagingMemory);
+
+  copyBuffer(stagingBuffer, dstBuffer, size, commandPool, graphicsQueue, device, dstOffset);
+
+  destroyBuffer(stagingMemory, stagingBuffer, device);
 }
 
 void createIndexBuffer(VkDeviceMemory &indexBufferMemory, VkBuffer &indexBuffer, const std::vector<uint32_t> &vertices, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
@@ -104,4 +148,26 @@ void createStorageBuffer(VkDeviceSize bufferSize, VkBuffer &storageBuffer, VkDev
 void destroyStorageBuffer(VkBuffer storageBuffer, VkDeviceMemory storageBufferMemory, VkDevice device)
 {
   destroyBuffer(storageBufferMemory, storageBuffer, device);
+}
+
+void createEmptyIndirectBuffer(VkDeviceMemory &indirectBufferMemory, VkBuffer &indirectBuffer, VkDeviceSize bufferSize, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  createBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indirectBuffer, indirectBufferMemory, device, physicalDevice);
+}
+
+void uploadToIndirectBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, const void *srcData, VkCommandPool commandPool, VkQueue graphicsQueue, VkDevice device, VkPhysicalDevice physicalDevice)
+{
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingMemory;
+
+  createBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory, device, physicalDevice);
+
+  void *data;
+  vkMapMemory(device, stagingMemory, 0, size, 0, &data);
+  memcpy(data, srcData, (size_t)size);
+  vkUnmapMemory(device, stagingMemory);
+
+  copyBuffer(stagingBuffer, dstBuffer, size, commandPool, graphicsQueue, device, dstOffset);
+
+  destroyBuffer(stagingMemory, stagingBuffer, device);
 }

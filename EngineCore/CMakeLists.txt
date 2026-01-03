@@ -1,8 +1,6 @@
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
-
 file(GLOB IMGUI_SRC
     "${CMAKE_SOURCE_DIR}/External/imgui/imgui.cpp"
     "${CMAKE_SOURCE_DIR}/External/imgui/imgui_draw.cpp"

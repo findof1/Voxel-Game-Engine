@@ -101,10 +101,12 @@ void RenderSystem::RenderScene(Renderer &renderer, float deltaTime, const Camera
     setScissor(cmdBuff, scissor);
   }
 
+  VkDescriptorSet texSet; // quick fix: please change
   for (auto const &entity : mEntities)
   {
     if (gCoordinator->HasComponent<VoxelMeshComponent>(entity) && gCoordinator->HasComponent<ChunkComponent>(entity))
     {
+      /*
       auto &chunk = gCoordinator->GetComponent<ChunkComponent>(entity);
       int chunkWidth = chunk.getWidth();
       int chunkLength = chunk.getLength();
@@ -113,22 +115,22 @@ void RenderSystem::RenderScene(Renderer &renderer, float deltaTime, const Camera
 
       glm::vec3 chunkHalf = glm::vec3(chunkWidth / 2.0f, chunkHeight / 2.0f, chunkLength / 2.0f);
 
-      if (!FrustumIntersects(frustum, chunkCenter, chunkHalf))
-        continue; // Skip rendering this chunk
+       if (!FrustumIntersects(frustum, chunkCenter, chunkHalf))
+         continue; // Skip rendering this chunk
+      */
 
       auto &mesh = gCoordinator->GetComponent<VoxelMeshComponent>(entity);
-
-      std::vector<VkDescriptorSet> sets = {cameraSet, renderer.voxelSet, mesh.mesh->texture.imageSet};
-      bindDescriptorSets(sets, cmdBuff, renderer.voxelPipelineLayout);
-
-      VoxelPushConstants pc{};
-      pc.objectId = chunk.gpuIndex;
-
-      vkCmdPushConstants(cmdBuff, renderer.voxelPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VoxelPushConstants), &pc);
-
-      mesh.mesh->Draw();
+      texSet = mesh.mesh->texture.imageSet;
+      // mesh.mesh->Draw();
     }
   }
+
+  std::vector<VkDescriptorSet> sets = {cameraSet, renderer.voxelSet, texSet};
+  bindDescriptorSets(sets, cmdBuff, renderer.voxelPipelineLayout);
+
+  bindVertexBuffer(renderer.voxelBuffers.vertexBuffer, cmdBuff);
+  bindIndexBuffer(renderer.voxelBuffers.indexBuffer, cmdBuff);
+  vkCmdDrawIndexedIndirect(cmdBuff, renderer.voxelBuffers.indirectBuffer, 0, renderer.voxelBuffers.drawCount, sizeof(VkDrawIndexedIndirectCommand));
 }
 
 glm::mat4 RenderSystem::getWorldMatrix(Entity entity)

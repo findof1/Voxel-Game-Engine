@@ -6,12 +6,22 @@
 #include "vertexData.hpp"
 #include "texture.hpp"
 
+struct VoxelDrawInfo
+{
+  int vertexOffset = UINT32_MAX;
+  int vertexCount = 0;
+  int indexOffset = UINT32_MAX;
+  int indexCount = 0;
+  int indirectIndex = UINT32_MAX;
+};
+
 struct UniformBufferObject;
 class Renderer;
 class VoxelMesh
 {
 public:
   Texture texture;
+  VoxelDrawInfo drawInfo;
 
   VoxelMesh(Renderer &renderer);
 
@@ -20,25 +30,12 @@ public:
     Cleanup();
   };
 
-  void Init(Texture texture, const std::vector<VoxelVertex> &verts, const std::vector<uint32_t> &inds);
+  void Init(Texture texture, const std::vector<VoxelVertex> &verts, const std::vector<uint32_t> &inds, uint32_t gpuIndex);
 
   void Cleanup();
 
-  void Draw();
-
-  VkBuffer GetVertexBuffer() const;
-  VkBuffer GetIndexBuffer() const;
-  uint32_t GetIndexCount() const;
-
 private:
   Renderer &renderer;
-
-  VkBuffer vertexBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
-
-  VkBuffer indexBuffer = VK_NULL_HANDLE;
-  VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
-
   std::vector<VoxelVertex> vertices;
   std::vector<uint32_t> indices;
 };

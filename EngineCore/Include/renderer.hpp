@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <cstdint>
 
 #include "vulkanInit.hpp"
 #include "vulkanSurface.hpp"
@@ -34,25 +35,19 @@ const std::vector<VkDynamicState> dynamicStates = {
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
+constexpr uint32_t MAX_VERTICES = 100000000;
+
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = true;
 #endif
 
-struct MeshDrawInfo
-{
-  int firstVertex;
-  int vertexCount;
-  int firstIndex;
-  int indexCount;
-  int indirectIndex;
-};
-
 struct VoxelBuffers
 {
   std::vector<Vertex> globalVoxelVertices;
   std::vector<uint32_t> globalVoxelIndices;
+  std::vector<VkDrawIndexedIndirectCommand> indirectCommands;
 
   FreeListAllocator vertexAlloc;
   VkBuffer vertexBuffer;
@@ -62,9 +57,10 @@ struct VoxelBuffers
   VkBuffer indexBuffer;
   VkDeviceMemory indexBufferMemory;
 
+  int drawCount = 0;
+  FreeListAllocator indirectAlloc;
   VkBuffer indirectBuffer;
   VkDeviceMemory indirectBufferMemory;
-  std::vector<VkDrawIndexedIndirectCommand> indirectCommands;
 };
 
 class Renderer

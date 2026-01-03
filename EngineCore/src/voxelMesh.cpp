@@ -9,51 +9,75 @@ VoxelMesh::VoxelMesh(Renderer &renderer) : renderer(renderer)
 {
 }
 
-void VoxelMesh::Init(Texture texture, const std::vector<VoxelVertex> &verts, const std::vector<uint32_t> &inds)
+void VoxelMesh::Init(Texture texture, const std::vector<VoxelVertex> &verts, const std::vector<uint32_t> &inds, uint32_t gpuIndex)
 {
   this->texture = texture;
   vertices = verts;
   indices = inds;
 
-  createVertexBuffer(vertexBufferMemory, vertexBuffer, sizeof(vertices[0]) * vertices.size(), vertices.data(), renderer.commandPool, renderer.graphicsQueue, renderer.device, renderer.physicalDevice);
+  drawInfo.vertexCount = static_cast<uint32_t>(vertices.size());
+  drawInfo.indexCount = static_cast<uint32_t>(indices.size());
 
-  createIndexBuffer(indexBufferMemory, indexBuffer, indices, renderer.commandPool, renderer.graphicsQueue, renderer.device, renderer.physicalDevice);
+  drawInfo.vertexOffset = renderer.voxelBuffers.vertexAlloc.allocate(drawInfo.vertexCount);
+  drawInfo.indexOffset = renderer.voxelBuffers.indexAlloc.allocate(drawInfo.indexCount);
+
+  assert(drawInfo.vertexOffset != UINT32_MAX);
+  assert(drawInfo.indexOffset != UINT32_MAX);
+
+  uploadToVertexBuffer(renderer.voxelBuffers.vertexBuffer, drawInfo.vertexOffset * sizeof(VoxelVertex), drawInfo.vertexCount * sizeof(VoxelVertex), vertices.data(), renderer.commandPool, renderer.graphicsQueue, renderer.device, renderer.physicalDevice);
+
+  uploadToIndexBuffer(renderer.voxelBuffers.indexBuffer, drawInfo.indexOffset * sizeof(uint32_t), drawInfo.indexCount * sizeof(uint32_t), indices.data(), renderer.commandPool, renderer.graphicsQueue, renderer.device, renderer.physicalDevice);
+
+  drawInfo.indirectIndex = renderer.voxelBuffers.indirectAlloc.allocate(1);
+  assert(drawInfo.indirectIndex != UINT32_MAX);
+
+  VkDrawIndexedIndirectCommand cmd{};
+  cmd.indexCount = drawInfo.indexCount;
+  cmd.instanceCount = 1;
+  cmd.firstIndex = drawInfo.indexOffset;
+  cmd.vertexOffset = drawInfo.vertexOffset;
+  cmd.firstInstance = gpuIndex;
+
+  uploadToIndirectBuffer(renderer.voxelBuffers.indirectBuffer, drawInfo.indirectIndex * sizeof(VkDrawIndexedIndirectCommand), sizeof(VkDrawIndexedIndirectCommand), &cmd, renderer.commandPool, renderer.graphicsQueue, renderer.device, renderer.physicalDevice);
+
+  renderer.voxelBuffers.drawCount++;
+  // renderer.voxelBuffers.indirectCommands[drawInfo.indirectIndex] = cmd;
 }
 
 void VoxelMesh::Cleanup()
 {
-  VkDevice device = renderer.device;
+  if (drawInfo.indirectIndex != UINT32_MAX)
+  {
+    VkDrawIndexedIndirectCommand cmd{};
+    cmd.indexCount = 0;
+    uploadToIndirectBuffer(
+        renderer.voxelBuffers.indirectBuffer,
+        drawInfo.indirectIndex * sizeof(VkDrawIndexedIndirectCommand),
+        sizeof(VkDrawIndexedIndirectCommand),
+        &cmd,
+        renderer.commandPool,
+        renderer.graphicsQueue,
+        renderer.device,
+        renderer.physicalDevice);
 
-  vkDeviceWaitIdle(device);
+    renderer.voxelBuffers.indirectAlloc.free(drawInfo.indirectIndex, 1);
+    drawInfo.indirectIndex = UINT32_MAX;
+    renderer.voxelBuffers.drawCount--;
+  }
 
-  destroyBuffer(indexBufferMemory, indexBuffer, device);
-  indexBuffer = VK_NULL_HANDLE;
-  indexBufferMemory = VK_NULL_HANDLE;
-  destroyBuffer(vertexBufferMemory, vertexBuffer, device);
-  vertexBuffer = VK_NULL_HANDLE;
-  vertexBufferMemory = VK_NULL_HANDLE;
-}
+  if (drawInfo.vertexOffset != UINT32_MAX)
+  {
+    renderer.voxelBuffers.vertexAlloc.free(drawInfo.vertexOffset, drawInfo.vertexCount);
+    drawInfo.vertexOffset = UINT32_MAX;
+    drawInfo.vertexCount = 0;
+    vertices.clear();
+  }
 
-void VoxelMesh::Draw()
-{
-  uint32_t currentFrame = renderer.currentFrame;
-  VkCommandBuffer commandBuffer = renderer.commandBuffers[currentFrame];
-  bindVertexBuffer(vertexBuffer, commandBuffer);
-  bindIndexBuffer(indexBuffer, commandBuffer);
-  drawIndexed(commandBuffer, indices.size());
-}
-
-VkBuffer VoxelMesh::GetVertexBuffer() const
-{
-  return vertexBuffer;
-}
-
-VkBuffer VoxelMesh::GetIndexBuffer() const
-{
-  return indexBuffer;
-}
-
-uint32_t VoxelMesh::GetIndexCount() const
-{
-  return static_cast<uint32_t>(indices.size());
+  if (drawInfo.indexOffset != UINT32_MAX)
+  {
+    renderer.voxelBuffers.indexAlloc.free(drawInfo.indexOffset, drawInfo.indexCount);
+    drawInfo.indexOffset = UINT32_MAX;
+    drawInfo.indexCount = 0;
+    indices.clear();
+  }
 }
