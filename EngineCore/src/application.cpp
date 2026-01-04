@@ -105,26 +105,30 @@ void Application::run()
   Entity world = coordinator->CreateEntity();
   {
     WorldComponent worldComponent{};
-    worldComponent.chunkHeight = 64;
+    worldComponent.cubicChunks = false;
+    worldComponent.minTerrainHeight = 32;
+    worldComponent.maxTerrainHeight = 128;
+    worldComponent.waterLevel = 48;
+    worldComponent.chunkHeight = 156;
     worldComponent.chunkWidth = 32;
     worldComponent.chunkLength = 32;
     worldComponent.simulationRadius = {4, 4, 4};
-    worldComponent.renderRadius0 = {8, 0, 8};
-    worldComponent.renderRadius1 = {16, 0, 16};
-    worldComponent.renderRadius2 = {22, 0, 22};
-    worldComponent.renderRadius3 = {30, 0, 30};
-    worldComponent.renderRadius4 = {38, 0, 38};
+    worldComponent.renderRadius0 = {4, 0, 4};
+    worldComponent.renderRadius1 = {12, 0, 12};
+    worldComponent.renderRadius2 = {20, 0, 20};
+    worldComponent.renderRadius3 = {20, 0, 20};
+    worldComponent.renderRadius4 = {20, 0, 20};
     worldComponent.seed = 213;
     coordinator->AddComponent(world, worldComponent);
   }
   WorldComponent &worldComp = coordinator->GetComponent<WorldComponent>(world);
 
-  voxelSystem = coordinator->RegisterSystem<VoxelSystem>(worldComp);
+  voxelSystem = coordinator->RegisterSystem<DefaultVoxelSystem>(worldComp);
   {
     Signature signature;
     signature.set(coordinator->GetComponentType<WorldComponent>());
     signature.set(coordinator->GetComponentType<ChunkComponent>());
-    coordinator->SetSystemSignature<VoxelSystem>(signature);
+    coordinator->SetSystemSignature<DefaultVoxelSystem>(signature);
   }
   voxelSystem->Init(coordinator);
 
@@ -136,7 +140,7 @@ void Application::run()
   }
   meshingSystem->Init(coordinator);
 
-  auto addBlock = [&](const std::string &name, int top, int bottom, int side, int visible = true)
+  auto addBlock = [&](const std::string &name, int top, int bottom, int side, int visible = true) -> uint32_t
   {
     uint32_t id = worldComp.registry.blocks.size();
     BlockType block;
@@ -148,10 +152,11 @@ void Application::run()
 
     worldComp.registry.blocks.push_back(block);
     worldComp.registry.nameToId[name] = id;
+    return id;
   };
 
   std::vector<std::string> filePaths;
-  filePaths.resize(10);
+  filePaths.resize(11);
   filePaths[0] = "Assets/textures/Tiles/dirt.png";
   filePaths[1] = "Assets/textures/Tiles/dirt_grass.png";
   filePaths[2] = "Assets/textures/Tiles/grass_top.png";
@@ -162,16 +167,29 @@ void Application::run()
   filePaths[7] = "Assets/textures/Tiles/leaves.png";
   filePaths[8] = "Assets/textures/Tiles/redsand.png";
   filePaths[9] = "Assets/textures/Tiles/snow.png";
+  filePaths[10] = "Assets/textures/Tiles/water.png";
 
-  addBlock("Air", -1, -1, -1, false);
-  addBlock("Grass", 2, 0, 1);
-  addBlock("Dirt", 0, 0, 0);
-  addBlock("Stone", 3, 3, 3);
-  addBlock("Sand", 4, 4, 4);
-  addBlock("Oak Log", 6, 6, 5);
-  addBlock("Oak Leaves", 7, 7, 7);
-  addBlock("Red Sand", 8, 8, 8);
-  addBlock("Snow", 9, 9, 9);
+  uint32_t air = addBlock("Air", -1, -1, -1, false);
+  uint32_t grass = addBlock("Grass", 2, 0, 1);
+  uint32_t dirt = addBlock("Dirt", 0, 0, 0);
+  uint32_t water = addBlock("Water", 10, 10, 10);
+  uint32_t stone = addBlock("Stone", 3, 3, 3);
+  uint32_t sand = addBlock("Sand", 4, 4, 4);
+  uint32_t logs = addBlock("Oak Log", 6, 6, 5);
+  uint32_t leaves = addBlock("Oak Leaves", 7, 7, 7);
+  uint32_t redSand = addBlock("Red Sand", 8, 8, 8);
+  uint32_t snow = addBlock("Snow", 9, 9, 9);
+
+  Biome plains;
+  plains.airBlock = air;
+  plains.waterBlock = water;
+  plains.topBlock = grass;
+  plains.topDepth = 1;
+  plains.fillerBlock = dirt;
+  plains.fillerDepth = 3;
+  plains.stoneBlock = stone;
+  plains.bottomBlock = stone;
+  voxelSystem->addBiome(plains, "Plains");
 
   Texture skyTex = renderer.createTexutre("Sky", "Assets/textures/sky.png");
   Texture wood = renderer.createTexutre("Wood", "Assets/textures/wood.png");
@@ -183,7 +201,7 @@ void Application::run()
     skybox = coordinator->CreateEntity();
     TransformComponent skyTransform{};
     skyTransform.translation = {0.0f, 0.0f, 0.0f};
-    skyTransform.scale = {1000.0f, 1000.0f, 1000.0f};
+    skyTransform.scale = {2000.0f, 2000.0f, 2000.0f};
     coordinator->AddComponent(skybox, skyTransform);
     LoadModel(skybox, coordinator, renderer, skyTex, "Assets/models/skybox.obj");
   }

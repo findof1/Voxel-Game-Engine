@@ -90,9 +90,22 @@ private:
 struct WorldComponent
 {
     BlockRegistry registry;
+    bool cubicChunks = true;
     int chunkWidth;
     int chunkLength;
     int chunkHeight;
+    int waterLevel = 48;
+    int minTerrainHeight = 32;
+    int maxTerrainHeight = 64;
+
+    // returns the id on success, -1 on failure
+    static uint32_t getBlockID(WorldComponent &world, const std::string &name)
+    {
+        if (world.registry.nameToId.find(name) != world.registry.nameToId.end())
+            return world.registry.nameToId.at(name);
+
+        return -1;
+    }
 
     glm::ivec3 simulationRadius; // in chunks
 

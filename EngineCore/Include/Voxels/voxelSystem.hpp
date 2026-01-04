@@ -10,26 +10,29 @@
 #include "ECS/components.hpp"
 #include "mesh.hpp"
 
+#include "FastNoiseLite.h"
+
 constexpr uint32_t MAX_CHUNKS = 32768;
 
 class VoxelSystem : public System
 {
 public:
     std::shared_ptr<Coordinator> gCoordinator;
+
     VoxelSystem(WorldComponent &world) : world(world)
     {
     }
     void Init(std::shared_ptr<Coordinator> coordinator);
     void Update(float deltaTime, const glm::vec3 &playerPos);
 
-private:
     WorldComponent &world;
 
     void UnloadDistantChunks(const glm::ivec3 &playerChunk);
     bool ChunkExists(const glm::ivec3 &coord);
     void CreateChunk(const glm::ivec3 &coord, int lod);
 
-    void GenerateVoxelData(Entity chunk); // World Generation Logic
+    ChunkComponent &StartGeneratingVoxelData(Entity chunk);
+    virtual void GenerateVoxelData(Entity chunk) = 0; // World Generation Logic
 
     glm::ivec3 WorldToChunk(const glm::vec3 &pos) const;
     glm::ivec3 WorldToLocal(const glm::ivec3 &worldPos) const;

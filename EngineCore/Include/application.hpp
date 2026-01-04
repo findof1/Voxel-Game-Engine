@@ -14,6 +14,7 @@
 #include "voxelSystem.hpp"
 #include "meshingSystem.hpp"
 #include "profiler.hpp"
+#include "defaultGen.hpp"
 
 class Application
 {
@@ -26,7 +27,7 @@ public:
   Entity skybox;
 
   std::shared_ptr<Coordinator> coordinator;
-  std::shared_ptr<VoxelSystem> voxelSystem;
+  std::shared_ptr<DefaultVoxelSystem> voxelSystem;
   std::shared_ptr<MeshingSystem> meshingSystem;
   std::shared_ptr<RenderSystem> renderSystem;
 

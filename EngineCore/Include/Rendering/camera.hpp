@@ -78,7 +78,7 @@ public:
 
   glm::mat4 getProjectionMatrix(float aspectRatio) const
   {
-    return glm::perspective(glm::radians(Zoom), aspectRatio, 0.01f, 2000.0f);
+    return glm::perspective(glm::radians(Zoom), aspectRatio, 0.01f, 5000.0f);
   }
 
   void processKeyboard(CameraMovement direction, float deltaTime)

@@ -12,60 +12,115 @@ void VoxelSystem::Update(float deltaTime, const glm::vec3 &playerPos)
 {
   const glm::ivec3 playerChunk = WorldToChunk(playerPos);
 
-  // lod 0
-  for (int x = -world.renderRadius0.x; x <= world.renderRadius0.x; ++x)
-    for (int y = -world.renderRadius0.y; y <= world.renderRadius0.y; ++y)
+  if (world.cubicChunks)
+  {
+    // lod 0
+    for (int x = -world.renderRadius0.x; x <= world.renderRadius0.x; ++x)
+      for (int y = -world.renderRadius0.y; y <= world.renderRadius0.y; ++y)
+        for (int z = -world.renderRadius0.z; z <= world.renderRadius0.z; ++z)
+        {
+          glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+
+          if (!ChunkExists(coord))
+            CreateChunk(coord, 0);
+        }
+
+    // lod 1
+    for (int x = -world.renderRadius1.x; x <= world.renderRadius1.x; ++x)
+      for (int y = -world.renderRadius1.y; y <= world.renderRadius1.y; ++y)
+        for (int z = -world.renderRadius1.z; z <= world.renderRadius1.z; ++z)
+        {
+          glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+
+          if (!ChunkExists(coord))
+            CreateChunk(coord, 1);
+        }
+
+    // lod 2
+    for (int x = -world.renderRadius2.x; x <= world.renderRadius2.x; ++x)
+      for (int y = -world.renderRadius2.y; y <= world.renderRadius2.y; ++y)
+        for (int z = -world.renderRadius2.z; z <= world.renderRadius2.z; ++z)
+        {
+          glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+
+          if (!ChunkExists(coord))
+            CreateChunk(coord, 2);
+        }
+
+    // lod 3
+    for (int x = -world.renderRadius3.x; x <= world.renderRadius3.x; ++x)
+      for (int y = -world.renderRadius3.y; y <= world.renderRadius3.y; ++y)
+        for (int z = -world.renderRadius3.z; z <= world.renderRadius3.z; ++z)
+        {
+          glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+
+          if (!ChunkExists(coord))
+            CreateChunk(coord, 3);
+        }
+
+    // lod 4
+    for (int x = -world.renderRadius4.x; x <= world.renderRadius4.x; ++x)
+      for (int y = -world.renderRadius4.y; y <= world.renderRadius4.y; ++y)
+        for (int z = -world.renderRadius4.z; z <= world.renderRadius4.z; ++z)
+        {
+          glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+
+          if (!ChunkExists(coord))
+            CreateChunk(coord, 4);
+        }
+  }
+  else
+  {
+    // lod 0
+    for (int x = -world.renderRadius0.x; x <= world.renderRadius0.x; ++x)
       for (int z = -world.renderRadius0.z; z <= world.renderRadius0.z; ++z)
       {
-        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, 0, z);
 
         if (!ChunkExists(coord))
           CreateChunk(coord, 0);
       }
 
-  // lod 1
-  for (int x = -world.renderRadius1.x; x <= world.renderRadius1.x; ++x)
-    for (int y = -world.renderRadius1.y; y <= world.renderRadius1.y; ++y)
+    // lod 1
+    for (int x = -world.renderRadius1.x; x <= world.renderRadius1.x; ++x)
       for (int z = -world.renderRadius1.z; z <= world.renderRadius1.z; ++z)
       {
-        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, 0, z);
 
         if (!ChunkExists(coord))
           CreateChunk(coord, 1);
       }
 
-  // lod 2
-  for (int x = -world.renderRadius2.x; x <= world.renderRadius2.x; ++x)
-    for (int y = -world.renderRadius2.y; y <= world.renderRadius2.y; ++y)
+    // lod 2
+    for (int x = -world.renderRadius2.x; x <= world.renderRadius2.x; ++x)
       for (int z = -world.renderRadius2.z; z <= world.renderRadius2.z; ++z)
       {
-        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, 0, z);
 
         if (!ChunkExists(coord))
           CreateChunk(coord, 2);
       }
 
-  // lod 3
-  for (int x = -world.renderRadius3.x; x <= world.renderRadius3.x; ++x)
-    for (int y = -world.renderRadius3.y; y <= world.renderRadius3.y; ++y)
+    // lod 3
+    for (int x = -world.renderRadius3.x; x <= world.renderRadius3.x; ++x)
       for (int z = -world.renderRadius3.z; z <= world.renderRadius3.z; ++z)
       {
-        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, 0, z);
 
         if (!ChunkExists(coord))
           CreateChunk(coord, 3);
       }
 
-  // lod 4
-  for (int x = -world.renderRadius4.x; x <= world.renderRadius4.x; ++x)
-    for (int y = -world.renderRadius4.y; y <= world.renderRadius4.y; ++y)
+    // lod 4
+    for (int x = -world.renderRadius4.x; x <= world.renderRadius4.x; ++x)
       for (int z = -world.renderRadius4.z; z <= world.renderRadius4.z; ++z)
       {
-        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, 0, z);
 
         if (!ChunkExists(coord))
           CreateChunk(coord, 4);
       }
+  }
 
   UnloadDistantChunks(playerChunk);
 }
@@ -80,11 +135,22 @@ void VoxelSystem::UnloadDistantChunks(const glm::ivec3 &playerChunk)
   {
     glm::ivec3 delta = chunkPos - playerChunk;
     constexpr float padding = 1.25;
-    if (std::abs(delta.x) > world.renderRadius4.x * padding ||
-        std::abs(delta.y) > world.renderRadius4.y * padding ||
-        std::abs(delta.z) > world.renderRadius4.z * padding)
+    if (world.cubicChunks)
     {
-      chunksToRemove.push_back(chunkPos);
+      if (std::abs(delta.x) > world.renderRadius4.x * padding ||
+          std::abs(delta.y) > world.renderRadius4.y * padding ||
+          std::abs(delta.z) > world.renderRadius4.z * padding)
+      {
+        chunksToRemove.push_back(chunkPos);
+      }
+    }
+    else
+    {
+      if (std::abs(delta.x) > world.renderRadius4.x * padding ||
+          std::abs(delta.z) > world.renderRadius4.z * padding)
+      {
+        chunksToRemove.push_back(chunkPos);
+      }
     }
   }
 
@@ -133,236 +199,17 @@ void VoxelSystem::CreateChunk(const glm::ivec3 &coord, int lod)
   GenerateVoxelData(chunk);
 }
 
+ChunkComponent &VoxelSystem::StartGeneratingVoxelData(Entity chunk)
+{
+  auto &chunkComp = gCoordinator->GetComponent<ChunkComponent>(chunk);
+  chunkComp.voxelData.resize(world.chunkWidth * world.chunkHeight * world.chunkLength);
+  return chunkComp;
+}
+
 int VoxelSystem::getIndex(int x, int y, int z)
 {
   int flippedY = world.chunkHeight - y - 1;
   return x + world.chunkWidth * z + world.chunkWidth * world.chunkLength * flippedY;
-}
-
-uint32_t hash2(int x, int y, uint32_t seed)
-{
-  uint32_t h = seed;
-  h ^= x * 0x27d4eb2d;
-  h ^= y * 0x165667b1;
-  h *= 0xc2b2ae35;
-  return h;
-}
-
-glm::vec2 gradient2(int x, int y, uint32_t seed)
-{
-  uint32_t h = hash2(x, y, seed);
-  h &= 7; // 8 directions
-
-  switch (h)
-  {
-  case 0:
-    return {1, 0};
-  case 1:
-    return {-1, 0};
-  case 2:
-    return {0, 1};
-  case 3:
-    return {0, -1};
-  case 4:
-    return {1, 1};
-  case 5:
-    return {-1, 1};
-  case 6:
-    return {1, -1};
-  default:
-    return {-1, -1};
-  }
-}
-
-float fade(float t)
-{
-  return t * t * t * (t * (t * 6 - 15) + 10);
-}
-
-float perlin2(float x, float y, uint32_t seed)
-{
-  int x0 = int(floor(x));
-  int y0 = int(floor(y));
-  int x1 = x0 + 1;
-  int y1 = y0 + 1;
-
-  float sx = x - float(x0);
-  float sy = y - float(y0);
-
-  glm::vec2 g00 = gradient2(x0, y0, seed);
-  glm::vec2 g10 = gradient2(x1, y0, seed);
-  glm::vec2 g01 = gradient2(x0, y1, seed);
-  glm::vec2 g11 = gradient2(x1, y1, seed);
-
-  glm::vec2 d00 = {sx, sy};
-  glm::vec2 d10 = {sx - 1, sy};
-  glm::vec2 d01 = {sx, sy - 1};
-  glm::vec2 d11 = {sx - 1, sy - 1};
-
-  float n00 = glm::dot(g00, d00);
-  float n10 = glm::dot(g10, d10);
-  float n01 = glm::dot(g01, d01);
-  float n11 = glm::dot(g11, d11);
-
-  float u = fade(sx);
-  float v = fade(sy);
-
-  float nx0 = std::lerp(n00, n10, u);
-  float nx1 = std::lerp(n01, n11, u);
-
-  return std::lerp(nx0, nx1, v);
-}
-
-// value must be from -1 to 1
-float normalize(float value)
-{
-  return value * 0.5f + 0.5f;
-}
-
-float perlin2Layered(float x, float y, uint32_t seed, int octaves, float frequency, float lacunarity, float gain)
-{
-  float value = 0.0f;
-  float amp = 1.0f;
-  float freq = frequency;
-  float maxAmp = 0.0f;
-
-  for (int i = 0; i < octaves; i++)
-  {
-    value += perlin2(x * freq, y * freq, seed + i * 1013) * amp;
-    maxAmp += amp;
-
-    amp *= gain;
-    freq *= lacunarity;
-  }
-
-  return value / maxAmp;
-}
-
-float random2(int x, int y, uint32_t seed)
-{
-  return (hash2(x, y, seed) & 0xFFFFFF) / float(0xFFFFFF);
-}
-
-float randomRangeBiased2(int x, int y, uint32_t seed, float min, float max, float bias = 0)
-{
-  float r = random2(x, y, seed);
-
-  if (bias != 0.0f)
-  {
-    // bias > 0  -> bias toward max
-    // bias < 0  -> bias toward min
-    float k = 1.0f + std::abs(bias);
-    if (bias > 0.0f)
-      r = std::pow(r, 1.0f / k);
-    else
-      r = 1.0f - std::pow(1.0f - r, 1.0f / k);
-  }
-
-  return min + r * (max - min);
-}
-
-uint32_t hash3(int x, int y, int z, uint32_t seed)
-{
-  uint32_t h = seed;
-  h ^= x * 0x27d4eb2d;
-  h ^= y * 0x165667b1;
-  h ^= z * 0x85ebca6b;
-  h *= 0xc2b2ae35;
-  return h;
-}
-
-float random3(int x, int y, int z, uint32_t seed)
-{
-  return (hash3(x, y, z, seed) & 0xFFFFFF) / float(0xFFFFFF);
-}
-
-float randomRangeBiased3(int x, int y, int z, uint32_t seed, float min, float max, float bias = 0)
-{
-  float r = random3(x, y, z, seed);
-
-  if (bias != 0.0f)
-  {
-    // bias > 0  -> bias toward max
-    // bias < 0  -> bias toward min
-    float k = 1.0f + std::abs(bias);
-    if (bias > 0.0f)
-      r = std::pow(r, 1.0f / k);
-    else
-      r = 1.0f - std::pow(1.0f - r, 1.0f / k);
-  }
-
-  return min + r * (max - min);
-}
-
-void VoxelSystem::GenerateVoxelData(Entity chunk)
-{
-  auto &chunkComp = gCoordinator->GetComponent<ChunkComponent>(chunk);
-  chunkComp.voxelData.resize(world.chunkWidth * world.chunkHeight * world.chunkLength);
-
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_int_distribution<> heightDist(12, 16);
-
-  const uint32_t stoneId = world.registry.nameToId.at("Stone");
-  const uint32_t dirtId = world.registry.nameToId.at("Dirt");
-  const uint32_t grassId = world.registry.nameToId.at("Grass");
-  const uint32_t sandId = world.registry.nameToId.at("Sand");
-  const uint32_t snowId = world.registry.nameToId.at("Snow");
-  const uint32_t airId = world.registry.nameToId.at("Air");
-
-  int worldBaseX = chunkComp.worldPosition.x * world.chunkWidth;
-  int worldBaseZ = chunkComp.worldPosition.z * world.chunkLength;
-  int worldBaseY = chunkComp.worldPosition.y * world.chunkHeight;
-  for (int x = 0; x < world.chunkWidth; x++)
-  {
-    for (int z = 0; z < world.chunkLength; z++)
-    {
-      int worldX = x + worldBaseX;
-      int worldZ = z + worldBaseZ;
-
-      // n is between -1 and 1
-      float n = perlin2Layered(worldX, worldZ, world.seed, 4, 0.03f, 2.0f, 0.7f);
-
-      // n is between 0 and 1
-      n = normalize(n);
-
-      // terrainHeight is between 12 and 64
-      int terrainHeight = (n * (64 - 12)) + 12;
-
-      for (int y = 0; y < world.chunkHeight; y++)
-      {
-        int worldY = worldBaseY + y;
-        int index = getIndex(x, y, z);
-
-        if (worldY > terrainHeight)
-        {
-          chunkComp.voxelData[index] = {airId};
-          continue;
-        }
-
-        int depth = terrainHeight - worldY;
-
-        if (depth == 0)
-        {
-          // Surface block
-          if (terrainHeight > 60)
-            chunkComp.voxelData[index] = {snowId};
-          else if (terrainHeight < 30)
-            chunkComp.voxelData[index] = {sandId};
-          else
-            chunkComp.voxelData[index] = {grassId};
-        }
-        else if (depth <= 3)
-        {
-          chunkComp.voxelData[index] = {dirtId};
-        }
-        else
-        {
-          chunkComp.voxelData[index] = {stoneId};
-        }
-      }
-    }
-  }
 }
 
 glm::ivec3 VoxelSystem::WorldToChunk(const glm::vec3 &pos) const

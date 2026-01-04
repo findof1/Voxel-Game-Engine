@@ -28,7 +28,8 @@ include_directories(
     "${CMAKE_SOURCE_DIR}/EngineCore/Include"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include/ECS"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include/Voxels"
-    "${CMAKE_SOURCE_DIR}/EngineCore/Include/Vulkan"
+    "${CMAKE_SOURCE_DIR}/EngineCore/Include/Rendering"
+    "${CMAKE_SOURCE_DIR}/EngineCore/Include/Rendering/Vulkan"
     "${CMAKE_SOURCE_DIR}/EngineCore/Include/Utils"
     "${CMAKE_SOURCE_DIR}/External/imgui"
     "${CMAKE_SOURCE_DIR}/External/imgui/backends"
@@ -41,7 +42,7 @@ link_directories(
     ${GLFW_LIBRARY_DIRS}
 )
 
-file(GLOB ENGINE_SRC "${CMAKE_SOURCE_DIR}/EngineCore/src/*.cpp" "${CMAKE_SOURCE_DIR}/EngineCore/src/*/*.cpp")
+file(GLOB ENGINE_SRC "${CMAKE_SOURCE_DIR}/EngineCore/src/*.cpp" "${CMAKE_SOURCE_DIR}/EngineCore/src/*/*.cpp" "${CMAKE_SOURCE_DIR}/EngineCore/src/*/*/*.cpp")
 
 add_executable(GameEngine
     ${ENGINE_SRC}
