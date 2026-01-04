@@ -94,8 +94,22 @@ struct WorldComponent
     int chunkLength;
     int chunkHeight;
 
-    int renderRadius; // in chunks
-    int simulationRadius;
+    glm::ivec3 simulationRadius; // in chunks
+
+    // lod0
+    glm::ivec3 renderRadius0; // in chunks
+
+    // lod1
+    glm::ivec3 renderRadius1;
+
+    // lod2
+    glm::ivec3 renderRadius2;
+
+    // lod3
+    glm::ivec3 renderRadius3;
+
+    // lod3
+    glm::ivec3 renderRadius4;
 
     std::unordered_map<glm::ivec3, Entity, IVec3Hash> chunkMap;
 

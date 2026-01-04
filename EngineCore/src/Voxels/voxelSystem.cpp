@@ -11,12 +11,11 @@ void VoxelSystem::Init(std::shared_ptr<Coordinator> coordinator)
 void VoxelSystem::Update(float deltaTime, const glm::vec3 &playerPos)
 {
   const glm::ivec3 playerChunk = WorldToChunk(playerPos);
-  const int radius = std::max(world.simulationRadius, world.renderRadius);
 
   // lod 0
-  for (int x = -radius; x <= radius; ++x)
-    for (int y = -2; y <= 2; ++y)
-      for (int z = -radius; z <= radius; ++z)
+  for (int x = -world.renderRadius0.x; x <= world.renderRadius0.x; ++x)
+    for (int y = -world.renderRadius0.y; y <= world.renderRadius0.y; ++y)
+      for (int z = -world.renderRadius0.z; z <= world.renderRadius0.z; ++z)
       {
         glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
@@ -24,57 +23,55 @@ void VoxelSystem::Update(float deltaTime, const glm::vec3 &playerPos)
           CreateChunk(coord, 0);
       }
 
-  /*
-// lod 1
-for (int x = -radius * 2; x <= radius * 2; ++x)
-for (int y = -2; y <= 2; ++y)
-  for (int z = -radius * 2; z <= radius * 2; ++z)
-  {
-    glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+  // lod 1
+  for (int x = -world.renderRadius1.x; x <= world.renderRadius1.x; ++x)
+    for (int y = -world.renderRadius1.y; y <= world.renderRadius1.y; ++y)
+      for (int z = -world.renderRadius1.z; z <= world.renderRadius1.z; ++z)
+      {
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
-    if (!ChunkExists(coord))
-      CreateChunk(coord, 1);
-  }
+        if (!ChunkExists(coord))
+          CreateChunk(coord, 1);
+      }
 
-// lod 2
-for (int x = -radius * 4; x <= radius * 4; ++x)
-for (int y = -2; y <= 2; ++y)
-  for (int z = -radius * 4; z <= radius * 4; ++z)
-  {
-    glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+  // lod 2
+  for (int x = -world.renderRadius2.x; x <= world.renderRadius2.x; ++x)
+    for (int y = -world.renderRadius2.y; y <= world.renderRadius2.y; ++y)
+      for (int z = -world.renderRadius2.z; z <= world.renderRadius2.z; ++z)
+      {
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
-    if (!ChunkExists(coord))
-      CreateChunk(coord, 2);
-  }
+        if (!ChunkExists(coord))
+          CreateChunk(coord, 2);
+      }
 
-// lod 3
-for (int x = -radius * 6; x <= radius * 6; ++x)
-for (int y = -2; y <= 2; ++y)
-  for (int z = -radius * 6; z <= radius * 6; ++z)
-  {
-    glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+  // lod 3
+  for (int x = -world.renderRadius3.x; x <= world.renderRadius3.x; ++x)
+    for (int y = -world.renderRadius3.y; y <= world.renderRadius3.y; ++y)
+      for (int z = -world.renderRadius3.z; z <= world.renderRadius3.z; ++z)
+      {
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
-    if (!ChunkExists(coord))
-      CreateChunk(coord, 3);
-  }
+        if (!ChunkExists(coord))
+          CreateChunk(coord, 3);
+      }
 
-// lod 4
-for (int x = -radius * 8; x <= radius * 8; ++x)
-for (int y = -2; y <= 2; ++y)
-  for (int z = -radius * 8; z <= radius * 8; ++z)
-  {
-    glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
+  // lod 4
+  for (int x = -world.renderRadius4.x; x <= world.renderRadius4.x; ++x)
+    for (int y = -world.renderRadius4.y; y <= world.renderRadius4.y; ++y)
+      for (int z = -world.renderRadius4.z; z <= world.renderRadius4.z; ++z)
+      {
+        glm::ivec3 coord = playerChunk + glm::ivec3(x, y, z);
 
-    if (!ChunkExists(coord))
-      CreateChunk(coord, 4);
-  }*/
+        if (!ChunkExists(coord))
+          CreateChunk(coord, 4);
+      }
 
   UnloadDistantChunks(playerChunk);
 }
 
 void VoxelSystem::UnloadDistantChunks(const glm::ivec3 &playerChunk)
 {
-  const int radius = std::max(world.simulationRadius, world.renderRadius);
 
   std::vector<glm::ivec3> chunksToRemove;
   chunksToRemove.reserve(world.chunkMap.size());
@@ -82,10 +79,10 @@ void VoxelSystem::UnloadDistantChunks(const glm::ivec3 &playerChunk)
   for (const auto &[chunkPos, entity] : world.chunkMap)
   {
     glm::ivec3 delta = chunkPos - playerChunk;
-
-    if (std::abs(delta.x) > radius * 2 + 1 ||
-        std::abs(delta.y) > radius * 2 + 1 ||
-        std::abs(delta.z) > radius * 2 + 1)
+    constexpr float padding = 1.25;
+    if (std::abs(delta.x) > world.renderRadius4.x * padding ||
+        std::abs(delta.y) > world.renderRadius4.y * padding ||
+        std::abs(delta.z) > world.renderRadius4.z * padding)
     {
       chunksToRemove.push_back(chunkPos);
     }

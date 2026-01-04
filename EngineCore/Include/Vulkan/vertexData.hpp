@@ -53,9 +53,23 @@ struct PushConstants
 
 struct VoxelVertex
 {
-  glm::vec3 pos;
-  glm::vec2 texCoord;
+  int16_t pos[3];    // 12.4 fixed point, 12 bytes for int part, 4 bytes for fractional part
+  uint16_t texCoord; // u: 4.4 fixed point, v: 4.4 fixed point
   uint16_t texIndex;
+
+  static uint16_t packUVs(const glm::vec2 &uv)
+  {
+    uint16_t u = uint16_t(glm::clamp(uv.x, 0.0f, 15.9375f) * 16.0f);
+    uint16_t v = uint16_t(glm::clamp(uv.y, 0.0f, 15.9375f) * 16.0f);
+    return (v << 8) | u;
+  }
+
+  static int16_t packPosition(float value)
+  {
+    int16_t valueFixed = static_cast<int16_t>(value * 16.0f);
+
+    return valueFixed;
+  }
 
   static VkVertexInputBindingDescription getBindingDescription()
   {
@@ -74,12 +88,12 @@ struct VoxelVertex
 
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[0].format = VK_FORMAT_R16G16B16_SINT;
     attributeDescriptions[0].offset = offsetof(VoxelVertex, pos);
 
     attributeDescriptions[1].binding = 0;
     attributeDescriptions[1].location = 1;
-    attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[1].format = VK_FORMAT_R16_UINT;
     attributeDescriptions[1].offset = offsetof(VoxelVertex, texCoord);
 
     attributeDescriptions[2].binding = 0;
@@ -90,11 +104,3 @@ struct VoxelVertex
     return attributeDescriptions;
   }
 };
-
-/*
-//Unused
-
-struct VoxelPushConstants
-{
-  alignas(16) int objectId;
-};*/

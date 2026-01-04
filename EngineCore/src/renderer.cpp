@@ -270,6 +270,7 @@ void Renderer::cleanup()
 
   destroyBuffer(voxelBuffers.indexBufferMemory, voxelBuffers.indexBuffer, device);
   destroyBuffer(voxelBuffers.vertexBufferMemory, voxelBuffers.vertexBuffer, device);
+  destroyBuffer(voxelBuffers.indirectBufferMemory, voxelBuffers.indirectBuffer, device);
 
   for (auto fence : inFlightFences)
   {

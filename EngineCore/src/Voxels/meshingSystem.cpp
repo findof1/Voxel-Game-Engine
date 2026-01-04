@@ -45,19 +45,39 @@ void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint32_t> &indices
 
   uint32_t start = static_cast<uint32_t>(vertices.size());
 
+  uint16_t uv00 = VoxelVertex::packUVs({0, 0});
+  uint16_t uv10 = VoxelVertex::packUVs({1, 0});
+  uint16_t uv01 = VoxelVertex::packUVs({0, 1});
+  uint16_t uv11 = VoxelVertex::packUVs({1, 1});
+
+  int16_t v0x = VoxelVertex::packPosition(v0.x);
+  int16_t v0y = VoxelVertex::packPosition(v0.y);
+  int16_t v0z = VoxelVertex::packPosition(v0.z);
+
+  int16_t v1x = VoxelVertex::packPosition(v1.x);
+  int16_t v1y = VoxelVertex::packPosition(v1.y);
+  int16_t v1z = VoxelVertex::packPosition(v1.z);
+
+  int16_t v2x = VoxelVertex::packPosition(v2.x);
+  int16_t v2y = VoxelVertex::packPosition(v2.y);
+  int16_t v2z = VoxelVertex::packPosition(v2.z);
+
+  int16_t v3x = VoxelVertex::packPosition(v3.x);
+  int16_t v3y = VoxelVertex::packPosition(v3.y);
+  int16_t v3z = VoxelVertex::packPosition(v3.z);
   if (axis == 0)
   {
-    vertices.push_back({v0, {1, 0}, texture});
-    vertices.push_back({v1, {1, 1}, texture});
-    vertices.push_back({v2, {0, 1}, texture});
-    vertices.push_back({v3, {0, 0}, texture});
+    vertices.push_back({v0x, v0y, v0z, uv10, texture});
+    vertices.push_back({v1x, v1y, v1z, uv11, texture});
+    vertices.push_back({v2x, v2y, v2z, uv01, texture});
+    vertices.push_back({v3x, v3y, v3z, uv00, texture});
   }
   else
   {
-    vertices.push_back({v0, {0, 0}, texture});
-    vertices.push_back({v1, {1, 0}, texture});
-    vertices.push_back({v2, {1, 1}, texture});
-    vertices.push_back({v3, {0, 1}, texture});
+    vertices.push_back({v0x, v0y, v0z, uv00, texture});
+    vertices.push_back({v1x, v1y, v1z, uv10, texture});
+    vertices.push_back({v2x, v2y, v2z, uv11, texture});
+    vertices.push_back({v3x, v3y, v3z, uv01, texture});
   }
 
   bool flip = backFace;

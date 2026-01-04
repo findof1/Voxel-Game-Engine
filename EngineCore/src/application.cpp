@@ -105,11 +105,15 @@ void Application::run()
   Entity world = coordinator->CreateEntity();
   {
     WorldComponent worldComponent{};
-    worldComponent.chunkHeight = 16;
-    worldComponent.chunkWidth = 16;
-    worldComponent.chunkLength = 16;
-    worldComponent.renderRadius = 4;
-    worldComponent.simulationRadius = 4;
+    worldComponent.chunkHeight = 64;
+    worldComponent.chunkWidth = 32;
+    worldComponent.chunkLength = 32;
+    worldComponent.simulationRadius = {4, 4, 4};
+    worldComponent.renderRadius0 = {8, 0, 8};
+    worldComponent.renderRadius1 = {16, 0, 16};
+    worldComponent.renderRadius2 = {22, 0, 22};
+    worldComponent.renderRadius3 = {30, 0, 30};
+    worldComponent.renderRadius4 = {38, 0, 38};
     worldComponent.seed = 213;
     coordinator->AddComponent(world, worldComponent);
   }
