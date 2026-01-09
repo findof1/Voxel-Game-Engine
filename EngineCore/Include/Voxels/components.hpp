@@ -12,6 +12,8 @@
 
 class VoxelMesh;
 
+#define CHUNK_SIZE 31
+
 struct IVec3Hash
 {
     std::size_t operator()(const glm::ivec3 &v) const noexcept
@@ -42,7 +44,7 @@ static uint32_t nextGPUIndex = 0;
 
 struct ChunkComponent // turns an entity into a voxel chunk
 {
-    std::vector<Voxel> voxelData; // might want to turn it into a custom allocated type because the size stays constant after initialization
+    std::vector<Voxel> voxelData;
 
     ChunkState chunkState = ChunkState::Clean;
     int chunkLOD = 0;
@@ -53,47 +55,17 @@ struct ChunkComponent // turns an entity into a voxel chunk
 
     ChunkComponent()
     {
-        chunkWidth = 0;
-        chunkLength = 0;
-        chunkHeight = 0;
     }
 
-    ChunkComponent(int w, int l, int h, uint32_t uniqueIndex)
+    ChunkComponent(uint32_t uniqueIndex)
     {
-        chunkWidth = w;
-        chunkLength = l;
-        chunkHeight = h;
         gpuIndex = uniqueIndex;
     }
-
-    int getWidth()
-    {
-        return chunkWidth;
-    }
-
-    int getLength()
-    {
-        return chunkLength;
-    }
-
-    int getHeight()
-    {
-        return chunkHeight;
-    }
-
-private:
-    int chunkWidth;
-    int chunkLength;
-    int chunkHeight;
 };
 
 struct WorldComponent
 {
     BlockRegistry registry;
-    bool cubicChunks = true;
-    int chunkWidth;
-    int chunkLength;
-    int chunkHeight;
     int waterLevel = 48;
     int minTerrainHeight = 32;
     int maxTerrainHeight = 64;
@@ -106,8 +78,6 @@ struct WorldComponent
 
         return -1;
     }
-
-    glm::ivec3 simulationRadius; // in chunks
 
     // lod0
     glm::ivec3 renderRadius0; // in chunks

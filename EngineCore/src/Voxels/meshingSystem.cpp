@@ -45,39 +45,39 @@ void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint32_t> &indices
 
   uint32_t start = static_cast<uint32_t>(vertices.size());
 
-  uint16_t uv00 = VoxelVertex::packUVs({0, 0});
-  uint16_t uv10 = VoxelVertex::packUVs({1, 0});
-  uint16_t uv01 = VoxelVertex::packUVs({0, 1});
-  uint16_t uv11 = VoxelVertex::packUVs({1, 1});
+  const uint16_t uv00Axis0 = VoxelVertex::packUVs({0, 0});
+  const uint16_t uv10Axis0 = VoxelVertex::packUVs({size[v] / step, 0});
+  const uint16_t uv01Axis0 = VoxelVertex::packUVs({0, size[u] / step});
+  const uint16_t uv11Axis0 = VoxelVertex::packUVs({size[v] / step, size[u] / step});
 
-  int16_t v0x = VoxelVertex::packPosition(v0.x);
-  int16_t v0y = VoxelVertex::packPosition(v0.y);
-  int16_t v0z = VoxelVertex::packPosition(v0.z);
+  const uint16_t uv00 = VoxelVertex::packUVs({0, 0});
+  const uint16_t uv10 = VoxelVertex::packUVs({size[u] / step, 0});
+  const uint16_t uv01 = VoxelVertex::packUVs({0, size[v] / step});
+  const uint16_t uv11 = VoxelVertex::packUVs({size[u] / step, size[v] / step});
 
-  int16_t v1x = VoxelVertex::packPosition(v1.x);
-  int16_t v1y = VoxelVertex::packPosition(v1.y);
-  int16_t v1z = VoxelVertex::packPosition(v1.z);
+  const glm::ivec3 iv0 = glm::ivec3(v0);
+  const glm::ivec3 iv1 = glm::ivec3(v1);
+  const glm::ivec3 iv2 = glm::ivec3(v2);
+  const glm::ivec3 iv3 = glm::ivec3(v3);
 
-  int16_t v2x = VoxelVertex::packPosition(v2.x);
-  int16_t v2y = VoxelVertex::packPosition(v2.y);
-  int16_t v2z = VoxelVertex::packPosition(v2.z);
+  const uint16_t vert0 = VoxelVertex::packPosition(iv0.x, iv0.y, iv0.z);
+  const uint16_t vert1 = VoxelVertex::packPosition(iv1.x, iv1.y, iv1.z);
+  const uint16_t vert2 = VoxelVertex::packPosition(iv2.x, iv2.y, iv2.z);
+  const uint16_t vert3 = VoxelVertex::packPosition(iv3.x, iv3.y, iv3.z);
 
-  int16_t v3x = VoxelVertex::packPosition(v3.x);
-  int16_t v3y = VoxelVertex::packPosition(v3.y);
-  int16_t v3z = VoxelVertex::packPosition(v3.z);
   if (axis == 0)
   {
-    vertices.push_back({v0x, v0y, v0z, uv10, texture});
-    vertices.push_back({v1x, v1y, v1z, uv11, texture});
-    vertices.push_back({v2x, v2y, v2z, uv01, texture});
-    vertices.push_back({v3x, v3y, v3z, uv00, texture});
+    vertices.push_back({vert0, uv10Axis0, texture});
+    vertices.push_back({vert1, uv11Axis0, texture});
+    vertices.push_back({vert2, uv01Axis0, texture});
+    vertices.push_back({vert3, uv00Axis0, texture});
   }
   else
   {
-    vertices.push_back({v0x, v0y, v0z, uv00, texture});
-    vertices.push_back({v1x, v1y, v1z, uv10, texture});
-    vertices.push_back({v2x, v2y, v2z, uv11, texture});
-    vertices.push_back({v3x, v3y, v3z, uv01, texture});
+    vertices.push_back({vert0, uv00, texture});
+    vertices.push_back({vert1, uv10, texture});
+    vertices.push_back({vert2, uv11, texture});
+    vertices.push_back({vert3, uv01, texture});
   }
 
   bool flip = backFace;
@@ -101,22 +101,27 @@ void EmitQuad(std::vector<VoxelVertex> &vertices, std::vector<uint32_t> &indices
   }
 }
 
-int Index3D(int x, int y, int z, int w, int l, int h)
+int Index3D(int x, int y, int z)
 {
-  return x + w * z + w * l * y;
+  return x + CHUNK_SIZE * z + CHUNK_SIZE * CHUNK_SIZE * y;
 }
 
-bool IsSolid(const std::vector<Voxel> &voxels, const BlockRegistry &registry, int x, int y, int z, int step, int w, int h, int d)
+bool IsSolid(const std::vector<Voxel> &voxels,
+             const BlockRegistry &registry,
+             int x, int y, int z,
+             int step)
 {
+  if (x < 0 || y < 0 || z < 0 ||
+      x >= CHUNK_SIZE / step ||
+      y >= CHUNK_SIZE / step ||
+      z >= CHUNK_SIZE / step)
+    return false;
+
   int sx = x * step;
   int sy = y * step;
   int sz = z * step;
 
-  if (sx < 0 || sy < 0 || sz < 0 ||
-      sx >= w || sy >= h || sz >= d)
-    return false;
-
-  uint32_t type = voxels[Index3D(sx, sy, sz, w, d, h)].type;
+  uint32_t type = voxels[Index3D(sx, sy, sz)].type;
   return registry.blocks[type].visible;
 }
 
@@ -148,9 +153,9 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
   auto &chunk = gCoordinator->GetComponent<ChunkComponent>(chunkEntity);
   const int step = 1 << chunk.chunkLOD; // step doubles for each lod
 
-  const int W = world.chunkWidth / step;
-  const int H = world.chunkHeight / step;
-  const int D = world.chunkLength / step;
+  const int W = CHUNK_SIZE / step;
+  const int H = CHUNK_SIZE / step;
+  const int D = CHUNK_SIZE / step;
 
   auto &voxels = chunk.voxelData;
   auto &registry = world.registry;
@@ -184,14 +189,14 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
           x[u] = y[u] = i;
           x[v] = y[v] = j;
 
-          bool a = IsSolid(voxels, registry, x[0], x[1], x[2], step, world.chunkWidth, world.chunkHeight, world.chunkLength);
-          bool b = IsSolid(voxels, registry, y[0], y[1], y[2], step, world.chunkWidth, world.chunkHeight, world.chunkLength);
+          bool a = IsSolid(voxels, registry, x[0], x[1], x[2], step);
+          bool b = IsSolid(voxels, registry, y[0], y[1], y[2], step);
 
           if (a == b)
             mask[n++] = 0;
           else
           {
-            int idx = a ? voxels[Index3D(x[0] * step, x[1] * step, x[2] * step, world.chunkWidth, world.chunkLength, world.chunkHeight)].type : voxels[Index3D(y[0] * step, y[1] * step, y[2] * step, world.chunkWidth, world.chunkLength, world.chunkHeight)].type;
+            int idx = a ? voxels[Index3D(x[0] * step, x[1] * step, x[2] * step)].type : voxels[Index3D(y[0] * step, y[1] * step, y[2] * step)].type;
 
             mask[n++] = a ? (idx + 1) : -(idx + 1);
           }
@@ -274,7 +279,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
   if (vertices.size() > 0 && indices.size() > 0)
   {
     TransformComponent chunkTransform{};
-    chunkTransform.translation = {chunk.worldPosition.x * world.chunkWidth, -chunk.worldPosition.y * world.chunkHeight, chunk.worldPosition.z * world.chunkLength};
+    chunkTransform.translation = {chunk.worldPosition.x * CHUNK_SIZE, -chunk.worldPosition.y * CHUNK_SIZE, chunk.worldPosition.z * CHUNK_SIZE};
     chunkTransform.scale = {1.0f, 1.0f, 1.0f};
     renderer.storageBufferAccess[chunk.gpuIndex].model = chunkTransform.GetMatrix();
 

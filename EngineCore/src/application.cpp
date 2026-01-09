@@ -105,19 +105,14 @@ void Application::run()
   Entity world = coordinator->CreateEntity();
   {
     WorldComponent worldComponent{};
-    worldComponent.cubicChunks = false;
     worldComponent.minTerrainHeight = 32;
     worldComponent.maxTerrainHeight = 128;
     worldComponent.waterLevel = 48;
-    worldComponent.chunkHeight = 156;
-    worldComponent.chunkWidth = 32;
-    worldComponent.chunkLength = 32;
-    worldComponent.simulationRadius = {4, 4, 4};
-    worldComponent.renderRadius0 = {4, 0, 4};
-    worldComponent.renderRadius1 = {12, 0, 12};
-    worldComponent.renderRadius2 = {20, 0, 20};
-    worldComponent.renderRadius3 = {20, 0, 20};
-    worldComponent.renderRadius4 = {20, 0, 20};
+    worldComponent.renderRadius0 = {4, 4, 4};
+    worldComponent.renderRadius1 = {4, 4, 4};
+    worldComponent.renderRadius2 = {4, 4, 4};
+    worldComponent.renderRadius3 = {4, 4, 4};
+    worldComponent.renderRadius4 = {4, 4, 4};
     worldComponent.seed = 213;
     coordinator->AddComponent(world, worldComponent);
   }

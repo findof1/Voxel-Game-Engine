@@ -10,7 +10,7 @@ mat4 models[];
 }
 chunks;
 
-layout(location = 0) in ivec3 inPosition;
+layout(location = 0) in uint inPosition;
 layout(location = 1) in uint inTexCoord;
 layout(location = 2) in uint inTexIndex;
 
@@ -23,8 +23,16 @@ float v = float((packed >> 8) & 0xFF) / 16.0;
 return vec2(u, v);
 }
 
+vec3 unpackPos(uint packed) {
+uvec3 p;
+p.x = packed & 31u;
+p.y = (packed >> 5u) & 31u;
+p.z = (packed >> 10u) & 31u;
+return vec3(p);
+}
+
 void main() {
-vec3 pos = vec3(inPosition) / 16.0; //since inPosition is a fixed point 12.4, convert to float
+vec3 pos = unpackPos(inPosition);
 
 gl_Position = ubo.proj * ubo.view * chunks.models[gl_InstanceIndex] * vec4(pos, 1.0);
 fragTexCoord = unpackUV(inTexCoord);

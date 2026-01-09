@@ -66,7 +66,7 @@ public:
 
     weirdness.SetSeed(world.seed + 3 * seedOffsets);
     weirdness.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    weirdness.SetFrequency(0.007f);
+    weirdness.SetFrequency(0.0014f);
     weirdness.SetFractalType(FastNoiseLite::FractalType_FBm);
     weirdness.SetFractalOctaves(8);
     weirdness.SetFractalLacunarity(1.5f);
@@ -167,14 +167,14 @@ public:
   {
     auto &chunkComp = StartGeneratingVoxelData(chunk);
 
-    int worldBaseX = chunkComp.worldPosition.x * world.chunkWidth;
-    int worldBaseZ = chunkComp.worldPosition.z * world.chunkLength;
-    int worldBaseY = chunkComp.worldPosition.y * world.chunkHeight;
+    int worldBaseX = chunkComp.worldPosition.x * CHUNK_SIZE;
+    int worldBaseZ = chunkComp.worldPosition.z * CHUNK_SIZE;
+    int worldBaseY = chunkComp.worldPosition.y * CHUNK_SIZE;
 
-    for (int x = 0; x < world.chunkWidth; x++)
+    for (int x = 0; x < CHUNK_SIZE; x++)
     {
       int worldX = x + worldBaseX;
-      for (int z = 0; z < world.chunkLength; z++)
+      for (int z = 0; z < CHUNK_SIZE; z++)
       {
         int worldZ = z + worldBaseZ;
         WorldFeatures features = generateWorldFeatures(worldX, worldZ);
@@ -182,7 +182,7 @@ public:
         const Biome &biome = chooseBiome(features);
 
         int terrainHeight = computeTerrainHeight(features, world.minTerrainHeight, world.maxTerrainHeight);
-        for (int y = 0; y < world.chunkHeight; y++)
+        for (int y = 0; y < CHUNK_SIZE; y++)
         {
           int worldY = worldBaseY + y;
 
