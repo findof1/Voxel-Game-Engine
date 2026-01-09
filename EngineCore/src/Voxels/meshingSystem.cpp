@@ -191,7 +191,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
             mask[n++] = 0;
           else
           {
-            int idx = a ? Index3D(x[0] * step, x[1] * step, x[2] * step, world.chunkWidth, world.chunkLength, world.chunkHeight) : Index3D(y[0] * step, y[1] * step, y[2] * step, world.chunkWidth, world.chunkLength, world.chunkHeight);
+            int idx = a ? voxels[Index3D(x[0] * step, x[1] * step, x[2] * step, world.chunkWidth, world.chunkLength, world.chunkHeight)].type : voxels[Index3D(y[0] * step, y[1] * step, y[2] * step, world.chunkWidth, world.chunkLength, world.chunkHeight)].type;
 
             mask[n++] = a ? (idx + 1) : -(idx + 1);
           }
@@ -236,8 +236,7 @@ void MeshingSystem::CreateMesh(Texture voxelTextures, Renderer &renderer, Entity
             for (int x2 = 0; x2 < w; x2++)
               mask[n + x2 + y2 * dims[u]] = 0;
 
-          int voxelIndex = abs(c) - 1;
-          uint32_t type = voxels[voxelIndex].type;
+          uint32_t type = abs(c) - 1;
           const BlockType &block = registry.blocks[type];
 
           int tex;
